@@ -1,124 +1,16 @@
 /* pages/settings/settings.wxss */
-
-.setting-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 16rpx 0;
-}
-
-.setting-info {
-  flex: 1;
-}
-
-.setting-name {
-  font-size: 30rpx;
-  font-weight: 500;
-  color: var(--text-primary);
-  display: block;
-}
-
-.setting-desc {
-  font-size: 24rpx;
-  color: var(--text-tertiary);
-  margin-top: 4rpx;
-  display: block;
-}
-
-.danger-text {
-  color: var(--danger) !important;
-}
-
-.setting-value-group {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  min-width: 240rpx;
-}
-
-.setting-value {
-  font-size: 28rpx;
-  font-weight: 600;
-  color: var(--accent);
-  margin-bottom: 8rpx;
-}
-
-.setting-value-group slider {
-  width: 200rpx;
-  margin: 0;
-}
-
-.setting-picker {
-  display: flex;
-  align-items: center;
-  gap: 8rpx;
-  font-size: 28rpx;
-  font-weight: 600;
-  color: var(--accent);
-  padding: 12rpx 20rpx;
-  background: var(--accent-light);
-  border-radius: var(--radius-sm);
-}
-
-.picker-arrow {
-  font-size: 24rpx;
-  color: var(--text-tertiary);
-}
-
-.setting-arrow {
-  font-size: 28rpx;
-  color: var(--text-tertiary);
-  margin-left: 16rpx;
-}
-
-/* 订阅描述 */
-.subscribe-desc {
-  font-size: 24rpx;
-  color: var(--text-secondary);
-  line-height: 1.8;
-  padding: 8rpx 0;
-}
-
-/* 关于 */
-.about-content {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 24rpx 0;
-}
-
-.about-logo {
-  width: 80rpx;
-  height: 80rpx;
-  background: var(--accent-gradient);
-  border-radius: var(--radius-lg);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 40rpx;
-  color: #FFFFFF;
-  font-weight: 700;
-  margin-bottom: 16rpx;
-}
-
-.about-name {
-  font-size: 32rpx;
-  font-weight: 700;
-  color: var(--text-primary);
-}
-
-.about-version {
-  font-size: 24rpx;
-  color: var(--text-tertiary);
-  margin-top: 4rpx;
-}
-
-.about-links {
-  margin-top: 16rpx;
-  text-align: center;
-}
-
-.about-link {
-  font-size: 26rpx;
-  color: var(--accent);
-}
+.page { padding: 20rpx 24rpx; }
+.profile-card { background: linear-gradient(135deg, #E8703A, #f09060); border-radius: 24rpx; padding: 40rpx; display: flex; align-items: center; gap: 24rpx; margin-bottom: 24rpx; }
+.avatar { width: 96rpx; height: 96rpx; border-radius: 50%; background: rgba(255,255,255,0.3); display: flex; align-items: center; justify-content: center; }
+.avatar-text { font-size: 40rpx; color: white; font-weight: 700; }
+.profile-info { flex: 1; }
+.profile-name { font-size: 32rpx; font-weight: 600; color: white; display: block; }
+.profile-email { font-size: 24rpx; color: rgba(255,255,255,0.8); margin-top: 4rpx; display: block; }
+.card { background: #fff; border-radius: 20rpx; padding: 28rpx; margin-bottom: 16rpx; box-shadow: 0 4rpx 16rpx rgba(0,0,0,0.04); }
+.card-title { font-size: 28rpx; font-weight: 600; color: #1a1a1a; margin-bottom: 16rpx; }
+.setting-item { display: flex; align-items: center; justify-content: space-between; padding: 16rpx 0; border-bottom: 1rpx solid #f5f5f5; }
+.setting-item:last-child { border-bottom: none; }
+.setting-left { flex: 1; }
+.setting-label { font-size: 28rpx; color: #1a1a1a; display: block; }
+.setting-desc { font-size: 22rpx; color: #999; margin-top: 4rpx; display: block; }
+.setting-arrow { font-size: 32rpx; color: #ccc; }

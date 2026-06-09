@@ -1,111 +1,63 @@
 <!-- pages/index/index.wxml -->
-<view class="container">
-  <!-- 顶部概览 -->
-  <view class="overview-card">
-    <view class="overview-title">我的额度</view>
-    <view class="overview-stats">
-      <view class="stat-item">
-        <text class="stat-value">{{totalCount}}</text>
-        <text class="stat-label">产品总数</text>
+<view class="page">
+  <!-- 顶部统计 -->
+  <view class="stats-grid">
+    <view class="stat-card" wx:for="{{statCards}}" wx:key="label">
+      <view class="stat-icon {{item.colorClass}}">
+        <text class="stat-icon-text">{{item.emoji}}</text>
       </view>
-      <view class="stat-divider"></view>
-      <view class="stat-item">
-        <text class="stat-value stat-warning">{{warningCount}}</text>
-        <text class="stat-label">需要关注</text>
-      </view>
-      <view class="stat-divider"></view>
-      <view class="stat-item">
-        <text class="stat-value stat-danger">{{expiredCount}}</text>
-        <text class="stat-label">已过期</text>
+      <view class="stat-info">
+        <text class="stat-value">{{item.value}}</text>
+        <text class="stat-label">{{item.label}}</text>
       </view>
     </view>
   </view>
 
-  <!-- 筛选标签 -->
-  <view class="filter-tabs">
-    <view
-      class="filter-tab {{filter === 'all' ? 'filter-tab--active' : ''}}"
-      bind:tap="onFilter"
-      data-filter="all"
-    >全部</view>
-    <view
-      class="filter-tab {{filter === 'warning' ? 'filter-tab--active' : ''}}"
-      bind:tap="onFilter"
-      data-filter="warning"
-    >需关注</view>
-    <view
-      class="filter-tab {{filter === 'expiring' ? 'filter-tab--active' : ''}}"
-      bind:tap="onFilter"
-      data-filter="expiring"
-    >即将到期</view>
-    <view
-      class="filter-tab {{filter === 'synced' ? 'filter-tab--active' : ''}}"
-      bind:tap="onFilter"
-      data-filter="synced"
-    >API 同步</view>
-  </view>
-
-  <!-- 产品列表 -->
-  <view class="product-list" wx:if="{{filteredProducts.length > 0}}">
-    <product-card
-      wx:for="{{filteredProducts}}"
-      wx:key="_id"
-      product="{{item}}"
-      id="{{item._id}}"
-      name="{{item.name}}"
-      emoji="{{item.emoji}}"
-      category="{{item.category}}"
-      quota-used="{{item.quotaUsed}}"
-      quota-total="{{item.quotaTotal}}"
-      quota-unit="{{item.quotaUnit}}"
-      expire-date="{{item.expireDate}}"
-      renew-price="{{item.renewPrice}}"
-      renew-cycle="{{item.renewCycle}}"
-      api-provider="{{item.apiProvider}}"
-      last-sync-time="{{item.lastSyncTime}}"
-      bind:tap="onProductTap"
-    />
-  </view>
-
-  <!-- 空状态 -->
-  <empty-state
-    wx:if="{{filteredProducts.length === 0 && !loading}}"
-    icon="{{filter === 'all' ? '📭' : '🔍'}}"
-    title="{{filter === 'all' ? '还没有产品' : '没有符合条件的产品'}}"
-    description="{{filter === 'all' ? '点击右下角 + 号添加你的第一个产品额度' : '试试切换其他筛选条件'}}"
-    actionText="{{filter === 'all' ? '添加产品' : ''}}"
-    bind:action="onAddProduct"
-  />
-
-  <!-- 加载中 -->
-  <view class="loading-container" wx:if="{{loading}}">
-    <view class="loading-spinner"></view>
-    <text class="loading-text">加载中...</text>
-  </view>
-</view>
-
-<!-- FAB 添加按钮 -->
-<view class="fab" bind:tap="onAddProduct">
-  <text class="fab-icon">+</text>
-</view>
-
-<!-- 提醒弹窗 -->
-<view class="reminder-modal" wx:if="{{showReminder && reminders.length > 0}}">
-  <view class="reminder-overlay" bind:tap="dismissReminder"></view>
-  <view class="reminder-content">
-    <view class="reminder-header">
-      <text class="reminder-icon">🔔</text>
-      <text class="reminder-title">{{reminders.length}}条提醒</text>
+  <!-- 快捷操作 -->
+  <view class="quick-actions">
+    <view class="action-btn" bindtap="goAdd">
+      <text class="action-icon">➕</text>
+      <text class="action-text">添加订阅</text>
     </view>
-    <view class="reminder-list">
-      <view class="reminder-item" wx:for="{{reminders}}" wx:key="index">
-        <text class="reminder-type">{{item.type === 'quota_low' ? '📉' : '⏰'}}</text>
-        <text class="reminder-text">{{item.message}}</text>
+    <view class="action-btn" bindtap="goTemplates">
+      <text class="action-icon">📋</text>
+      <text class="action-text">模板创建</text>
+    </view>
+  </view>
+
+  <!-- 到期时间轴 -->
+  <view class="section">
+    <view class="section-header">
+      <text class="section-title">📅 到期时间轴</text>
+    </view>
+
+    <view class="timeline-group" wx:for="{{timelineGroups}}" wx:key="key">
+      <view class="timeline-label">
+        <text>{{item.label}} ({{item.items.length}})</text>
+      </view>
+      <view wx:if="{{item.items.length === 0}}" class="timeline-empty">
+        <text class="empty-text">暂无</text>
+      </view>
+      <view class="timeline-item" wx:for="{{item.items}}" wx:for-item="sub" wx:key="id" bindtap="goDetail" data-id="{{sub.id}}">
+        <view class="timeline-dot"></view>
+        <view class="timeline-content">
+          <view class="timeline-main">
+            <text class="timeline-name">{{sub.name}}</text>
+            <text class="status-badge {{statusClass(sub.status)}}">{{statusLabel(sub.status)}}</text>
+          </view>
+          <view class="timeline-meta">
+            <text class="timeline-amount">{{formatCurrency(sub.amount, sub.currency)}}/{{cycleLabel(sub.billing_cycle)}}</text>
+            <text class="timeline-days" wx:if="{{sub.daysUntil !== null}}">
+              {{sub.daysUntil < 0 ? '已过期' + Math.abs(sub.daysUntil) + '天' : sub.daysUntil === 0 ? '今天到期' : sub.daysUntil + '天后到期'}}
+            </text>
+          </view>
+        </view>
       </view>
     </view>
-    <view class="reminder-actions">
-      <button class="btn-ghost" bind:tap="dismissReminder">知道了</button>
-      <button class="btn-primary" bind:tap="goToProduct">去查看</button>
-    </view>
+  </view>
+
+  <!-- 悬浮添加按钮 -->
+  <view class="fab" bindtap="goAdd">
+    <text class="fab-icon">+</text>
   </view>
 </view>

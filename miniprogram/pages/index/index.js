@@ -1,185 +1,106 @@
 // pages/index/index.js
-const db = wx.cloud.database()
+var api = require('../../utils/api.js')
+var util = require('../../utils/util.js')
 
 Page({
   data: {
-    products: [],
-    filteredProducts: [],
-    filter: 'all',
-    loading: true,
-    totalCount: 0,
-    warningCount: 0,
-    expiredCount: 0,
-    showReminder: false,
-    reminders: []
+    statCards: [],
+    timelineGroups: [],
+    subscriptions: [],
   },
 
-  onLoad() {
-    this.loadProducts()
+  onShow: function () {
+    this.loadData()
   },
 
-  onShow() {
-    // 每次显示时刷新数据（从添加/编辑页返回）
-    this.loadProducts()
-  },
+  loadData: function () {
+    var that = this
+    var userId = wx.getStorageSync('user_id')
+    if (!userId) {
+      // 需要登录
+      this.doLogin()
+      return
+    }
 
-  onPullDownRefresh() {
-    this.loadProducts().then(() => {
-      wx.stopPullDownRefresh()
-    })
-  },
-
-  // 加载产品列表
-  async loadProducts() {
-    this.setData({ loading: true })
-    try {
-      const res = await db.collection('products')
-        .where({ _openid: '{openid}' })
-        .orderBy('updatedAt', 'desc')
-        .get()
-
-      const products = res.data
-      const stats = this.calcStats(products)
-      const reminders = this.checkReminders(products)
-
-      this.setData({
-        products,
-        filteredProducts: this.applyFilter(products, this.data.filter),
-        ...stats,
-        reminders,
-        showReminder: reminders.length > 0,
-        loading: false
+    api.getSubscriptions(userId).then(function (subs) {
+      // 重新计算状态
+      subs = subs.map(function (s) {
+        s.status = util.calcStatus(s.expire_date)
+        s.daysUntil = util.daysUntil(s.expire_date)
+        return s
       })
-    } catch (err) {
-      console.error('加载产品失败:', err)
-      this.setData({ loading: false })
-      wx.showToast({ title: '加载失败', icon: 'none' })
-    }
-  },
 
-  // 统计数据
-  calcStats(products) {
-    const now = new Date()
-    let warningCount = 0
-    let expiredCount = 0
+      // 统计卡片
+      var monthlyExpense = subs.filter(function (s) { return s.billing_cycle === 'monthly' && s.currency === 'CNY' })
+        .reduce(function (sum, s) { return sum + Number(s.amount) }, 0)
+      var expiringSoon = subs.filter(function (s) { return s.status === 'expiring_soon' }).length
+      var expired = subs.filter(function (s) { return s.status === 'expired' }).length
 
-    products.forEach(p => {
-      // 额度告急
-      if (p.quotaTotal > 0) {
-        const remaining = (p.quotaTotal - p.quotaUsed) / p.quotaTotal * 100
-        if (remaining <= 30) warningCount++
-      }
-      // 已过期
-      if (p.expireDate) {
-        const daysLeft = Math.ceil((new Date(p.expireDate) - now) / 86400000)
-        if (daysLeft < 0) expiredCount++
-        else if (daysLeft <= 7) warningCount++
-      }
+      var statCards = [
+        { label: '总订阅', value: subs.length, emoji: '📊', colorClass: 'blue' },
+        { label: '月支出', value: '¥' + monthlyExpense.toFixed(0), emoji: '💰', colorClass: 'orange' },
+        { label: '即将到期', value: expiringSoon, emoji: '⚠️', colorClass: 'amber' },
+        { label: '已过期', value: expired, emoji: '❌', colorClass: 'red' },
+      ]
+
+      // 时间轴分组
+      var today = subs.filter(function (s) { return s.daysUntil !== null && s.daysUntil <= 0 })
+      var week = subs.filter(function (s) { return s.daysUntil !== null && s.daysUntil > 0 && s.daysUntil <= 7 })
+      var month = subs.filter(function (s) { return s.daysUntil !== null && s.daysUntil > 7 && s.daysUntil <= 30 })
+      var quarter = subs.filter(function (s) { return s.daysUntil !== null && s.daysUntil > 30 && s.daysUntil <= 90 })
+
+      var timelineGroups = [
+        { key: 'today', label: '今天/已过期', items: today },
+        { key: 'week', label: '7天内', items: week },
+        { key: 'month', label: '30天内', items: month },
+        { key: 'quarter', label: '90天内', items: quarter },
+      ]
+
+      that.setData({
+        subscriptions: subs,
+        statCards: statCards,
+        timelineGroups: timelineGroups,
+      })
+    }).catch(function (err) {
+      console.error('加载失败:', err)
     })
-
-    return {
-      totalCount: products.length,
-      warningCount,
-      expiredCount
-    }
   },
 
-  // 检查提醒
-  checkReminders(products) {
-    const now = new Date()
-    const reminders = []
-
-    products.forEach(p => {
-      if (p.quotaTotal > 0) {
-        const remaining = (p.quotaTotal - p.quotaUsed) / p.quotaTotal * 100
-        if (remaining <= 20) {
-          reminders.push({
-            type: 'quota_low',
-            product: p.name,
-            productId: p._id,
-            message: `${p.name} 额度仅剩 ${remaining.toFixed(1)}%，请及时续费`
-          })
-        }
-      }
-
-      if (p.expireDate) {
-        const daysLeft = Math.ceil((new Date(p.expireDate) - now) / 86400000)
-        if (daysLeft >= 0 && daysLeft <= 7) {
-          reminders.push({
-            type: 'expiring',
-            product: p.name,
-            productId: p._id,
-            message: `${p.name} 将在 ${daysLeft} 天后到期`
-          })
-        } else if (daysLeft < 0) {
-          reminders.push({
-            type: 'expired',
-            product: p.name,
-            productId: p._id,
-            message: `${p.name} 已过期 ${Math.abs(daysLeft)} 天`
-          })
-        }
-      }
-    })
-
-    return reminders
-  },
-
-  // 筛选
-  applyFilter(products, filter) {
-    const now = new Date()
-    switch (filter) {
-      case 'warning':
-        return products.filter(p => {
-          if (p.quotaTotal > 0) {
-            const remaining = (p.quotaTotal - p.quotaUsed) / p.quotaTotal * 100
-            if (remaining <= 30) return true
-          }
-          return false
+  doLogin: function () {
+    var that = this
+    wx.login({
+      success: function (res) {
+        wx.cloud.callFunction({
+          name: 'wechatLogin',
+          data: { code: res.code },
+          success: function (cloudRes) {
+            if (cloudRes.result && cloudRes.result.access_token) {
+              wx.setStorageSync('supabase_token', cloudRes.result.access_token)
+              wx.setStorageSync('user_id', cloudRes.result.user.id)
+              that.loadData()
+            }
+          },
         })
-      case 'expiring':
-        return products.filter(p => {
-          if (!p.expireDate) return false
-          const daysLeft = Math.ceil((new Date(p.expireDate) - now) / 86400000)
-          return daysLeft >= 0 && daysLeft <= 7
-        })
-      case 'synced':
-        return products.filter(p => p.apiProvider && p.apiProvider !== '')
-      default:
-        return products
-    }
-  },
-
-  onFilter(e) {
-    const filter = e.currentTarget.dataset.filter
-    this.setData({
-      filter,
-      filteredProducts: this.applyFilter(this.data.products, filter)
+      },
     })
   },
 
-  // 跳转添加产品
-  onAddProduct() {
+  goAdd: function () {
     wx.navigateTo({ url: '/pages/add/add' })
   },
 
-  // 跳转产品详情
-  onProductTap(e) {
-    const id = e.detail.id
-    wx.navigateTo({ url: `/pages/detail/detail?id=${id}` })
+  goDetail: function (e) {
+    var id = e.currentTarget.dataset.id
+    wx.navigateTo({ url: '/pages/detail/detail?id=' + id })
   },
 
-  // 提醒操作
-  dismissReminder() {
-    this.setData({ showReminder: false })
+  goTemplates: function () {
+    wx.switchTab({ url: '/pages/templates/templates' })
   },
 
-  goToProduct() {
-    this.setData({ showReminder: false })
-    // 跳转到第一个提醒的产品
-    if (this.data.reminders.length > 0) {
-      const id = this.data.reminders[0].productId
-      wx.navigateTo({ url: `/pages/detail/detail?id=${id}` })
-    }
-  }
+  // 供 wxml 调用的辅助函数（通过 WXS 或 data 映射）
+  formatCurrency: util.formatCurrency,
+  statusLabel: util.statusLabel,
+  statusClass: util.statusClass,
+  cycleLabel: util.cycleLabel,
 })

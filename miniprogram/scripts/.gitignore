@@ -1,5 +1,0 @@
-# 微信小程序 CI/CD 自动上传密钥（不进 Git）
-private.*.key
-ci-config.json
-.env.ci
-preview-qrcode.png

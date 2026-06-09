@@ -1,7 +1,7 @@
 {
-  "name": "checkQuota",
+  "name": "wechatLogin",
   "version": "1.0.0",
-  "description": "查询 API 额度 & OCR 识别",
+  "description": "微信登录",
   "main": "index.js",
   "dependencies": {
     "wx-server-sdk": "~2.6.3",

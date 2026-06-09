@@ -1,6 +1,6 @@
 {
   "miniprogramRoot": "./",
-  "cloudfunctionRoot": "cloudfunctions/",
+  "cloudfunctionRoot": "./cloudfunctions/",
   "setting": {
     "urlCheck": true,
     "es6": true,
@@ -9,44 +9,28 @@
     "preloadBackgroundData": false,
     "minified": true,
     "newFeature": true,
-    "coverView": true,
-    "nodeModules": false,
     "autoAudits": false,
+    "coverView": true,
     "showShadowRootInWxmlPanel": true,
     "scopeDataCheck": false,
-    "uglifyFileName": false,
     "checkInvalidKey": true,
     "checkSiteMap": true,
-    "uploadWithSourceMap": true,
-    "compileHotReLoad": false,
+    "uploadWithSourceCode": true,
     "babelSetting": {
       "ignore": [],
       "disablePlugins": [],
       "outputPath": ""
     }
   },
-  "appid": "wx24b81bb6575cd337",
-  "projectname": "quota-tracker",
-  "cloudfunctionTemplateRoot": "",
-  "condition": {},
-  "srcMiniprogramRoot": "./",
   "compileType": "miniprogram",
+  "appid": "wx24b81bb6575cd337",
+  "projectname": "yao-dao-qi-la",
   "libVersion": "3.7.5",
   "packOptions": {
     "ignore": [
-      { "type": "folder", "value": "node_modules" },
-      { "type": "folder", "value": "scripts" },
-      { "type": "file", "value": "package.json" },
-      { "type": "file", "value": "package-lock.json" },
-      { "type": "file", "value": "ci-config.json" },
-      { "type": "file", "value": ".env.ci" },
-      { "type": "glob", "value": "*.key" },
-      { "type": "glob", "value": "DEPLOY.md" },
-      { "type": "glob", "value": "CI-SETUP.md" },
-      { "type": "glob", "value": "CI-README.md" },
-      { "type": "folder", "value": ".github" }
-    ],
-    "include": []
+      { "type": "file", "value": "cloudfunctions" },
+      { "type": "file", "value": "README.md" }
+    ]
   },
-  "description": "额度追踪小程序 - 记录产品限时/额度，定时提醒续费"
+  "condition": {}
 }

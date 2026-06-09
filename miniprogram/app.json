@@ -3,48 +3,44 @@
     "pages/index/index",
     "pages/add/add",
     "pages/detail/detail",
+    "pages/edit/edit",
+    "pages/templates/templates",
     "pages/settings/settings"
   ],
   "window": {
-    "navigationBarBackgroundColor": "#FFF8F0",
-    "navigationBarTitleText": "额度追踪",
+    "backgroundTextStyle": "light",
+    "navigationBarBackgroundColor": "#ffffff",
+    "navigationBarTitleText": "要到期啦",
     "navigationBarTextStyle": "black",
-    "backgroundColor": "#FFF8F0",
-    "backgroundTextStyle": "dark"
+    "backgroundColor": "#fafafa"
   },
   "tabBar": {
     "color": "#999999",
     "selectedColor": "#E8703A",
-    "backgroundColor": "#FFFFFF",
+    "backgroundColor": "#ffffff",
     "borderStyle": "white",
     "list": [
       {
         "pagePath": "pages/index/index",
-        "text": "产品",
-        "iconPath": "images/tab-products.png",
-        "selectedIconPath": "images/tab-products-active.png"
+        "text": "首页",
+        "iconPath": "images/tab_home.png",
+        "selectedIconPath": "images/tab_home_active.png"
+      },
+      {
+        "pagePath": "pages/templates/templates",
+        "text": "模板",
+        "iconPath": "images/tab_template.png",
+        "selectedIconPath": "images/tab_template_active.png"
       },
       {
         "pagePath": "pages/settings/settings",
-        "text": "设置",
-        "iconPath": "images/tab-settings.png",
-        "selectedIconPath": "images/tab-settings-active.png"
+        "text": "我的",
+        "iconPath": "images/tab_user.png",
+        "selectedIconPath": "images/tab_user_active.png"
       }
     ]
   },
-  "plugins": {
-    "ocr-plugin": {
-      "version": "1.3.0",
-      "provider": "wx4418e3e03e19be01"
-    }
-  },
-  "permission": {
-    "scope.userLocation": {
-      "desc": "用于获取您的大致位置，以便提供更精准的服务"
-    }
-  },
-  "requiredPrivateInfos": [],
-  "style": "v2",
+  "cloud": true,
   "sitemapLocation": "sitemap.json",
   "lazyCodeLoading": "requiredComponents"
 }

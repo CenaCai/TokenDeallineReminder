@@ -1,8 +1,4 @@
 {
-  "usingComponents": {
-    "product-card": "/components/product-card/product-card",
-    "empty-state": "/components/empty-state/empty-state"
-  },
-  "enablePullDownRefresh": true,
-  "backgroundTextStyle": "dark"
+  "navigationBarTitleText": "要到期啦",
+  "enablePullDownRefresh": true
 }

@@ -1,224 +1,122 @@
 <!-- pages/add/add.wxml -->
-<view class="container safe-bottom">
-
-  <!-- 模式切换 -->
-  <view class="mode-tabs">
-    <view class="mode-tab {{mode === 'api' ? 'active' : ''}}" bind:tap="switchMode" data-mode="api">
-      ⚡ API 接入
+<view class="page">
+  <!-- 基本信息 -->
+  <view class="card">
+    <view class="card-title">基本信息</view>
+    <view class="form-item">
+      <text class="form-label">订阅名称 *</text>
+      <input class="form-input" placeholder="如: ChatGPT Plus" value="{{name}}" bindinput="onNameInput" />
     </view>
-    <view class="mode-tab {{mode === 'ocr' ? 'active' : ''}}" bind:tap="switchMode" data-mode="ocr">
-      📷 截图识别
-    </view>
-    <view class="mode-tab {{mode === 'manual' ? 'active' : ''}}" bind:tap="switchMode" data-mode="manual">
-      ✏️ 手动
-    </view>
-  </view>
-
-  <!-- 手动模式提示 -->
-  <view class="mode-warning" wx:if="{{mode === 'manual'}}">
-    <text class="warning-icon">💡</text>
-    <text class="warning-text">推荐使用 API 自动同步或截图识别，手动录入需要自行更新额度</text>
-  </view>
-
-  <!-- ==================== API 接入模式 ==================== -->
-  <view class="mode-content" wx:if="{{mode === 'api'}}">
-    <view class="card">
-      <view class="section-title">⚡ API 自动接入</view>
-      <view class="api-desc">填入 API Key，系统将自动查询余额并定期同步</view>
-
-      <view class="form-group">
-        <text class="form-label">服务提供商</text>
-        <picker mode="selector" range="{{apiProviders}}" range-key="name" bindchange="onProviderChange">
-          <view class="form-input picker-input">
-            {{selectedProvider.name || '请选择提供商'}}
-            <text class="picker-arrow">▸</text>
-          </view>
-        </picker>
-      </view>
-
-      <view class="form-group" wx:if="{{selectedProvider}}">
-        <text class="form-label">API Key</text>
-        <input
-          class="form-input"
-          type="text"
-          placeholder="{{selectedProvider.keyHint || '输入 API Key'}}"
-          value="{{apiKey}}"
-          bindinput="onApiKeyInput"
-        />
-        <text class="form-hint">{{selectedProvider.keyHint}}</text>
-      </view>
-
-      <view class="form-group" wx:if="{{selectedProvider}}">
-        <text class="form-label">产品名称（可选，自动获取）</text>
-        <input
-          class="form-input"
-          type="text"
-          placeholder="留空则使用提供商默认名称"
-          value="{{apiProductName}}"
-          bindinput="onApiProductNameInput"
-        />
-      </view>
-
-      <button class="btn-primary" bind:tap="fetchApiQuota" loading="{{apiLoading}}" disabled="{{!apiKey}}">
-        🔍 查询额度
-      </button>
-
-      <!-- 查询结果 -->
-      <view class="api-result" wx:if="{{apiResult}}">
-        <view class="result-header">
-          <text class="result-icon">✅</text>
-          <text class="result-title">查询成功</text>
-        </view>
-        <view class="result-detail">
-          <view class="result-row">
-            <text class="result-label">余额</text>
-            <text class="result-value">{{apiResult.balance}}{{apiResult.unit}}</text>
-          </view>
-          <view class="result-row" wx:if="{{apiResult.total}}">
-            <text class="result-label">总额度</text>
-            <text class="result-value">{{apiResult.total}}{{apiResult.unit}}</text>
-          </view>
-        </view>
-      </view>
-    </view>
-  </view>
-
-  <!-- ==================== 截图识别模式 ==================== -->
-  <view class="mode-content" wx:if="{{mode === 'ocr'}}">
-    <view class="card">
-      <view class="section-title">📷 截图识别</view>
-      <view class="api-desc">上传账单/余额截图，自动识别产品信息和额度</view>
-
-      <!-- 上传区域 -->
-      <view class="upload-area" bind:tap="chooseImage" wx:if="{{!imageUrl}}">
-        <view class="upload-icon">📷</view>
-        <text class="upload-text">点击上传截图</text>
-        <text class="upload-hint">支持账单、余额页面、续费通知等截图</text>
-      </view>
-
-      <!-- 预览区域 -->
-      <view class="image-preview" wx:if="{{imageUrl}}">
-        <image src="{{imageUrl}}" mode="aspectFit" class="preview-img" bind:tap="previewImage" />
-        <view class="preview-actions">
-          <button class="btn-secondary" bind:tap="chooseImage">重新选择</button>
-          <button class="btn-primary" bind:tap="startOcr" loading="{{ocrLoading}}">开始识别</button>
-        </view>
-      </view>
-
-      <!-- OCR 结果 -->
-      <view class="ocr-result" wx:if="{{ocrResult}}">
-        <view class="result-header">
-          <text class="result-icon">🔍</text>
-          <text class="result-title">识别结果</text>
-        </view>
-        <view class="ocr-fields">
-          <view class="form-group" wx:if="{{ocrResult.productName}}">
-            <text class="form-label">产品名称</text>
-            <input class="form-input" type="text" value="{{form.name}}" bindinput="onFormInput" data-field="name" />
-          </view>
-          <view class="form-group" wx:if="{{ocrResult.balance}}">
-            <text class="form-label">余额/额度</text>
-            <input class="form-input" type="digit" value="{{form.quotaTotal}}" bindinput="onFormInput" data-field="quotaTotal" />
-          </view>
-          <view class="form-group" wx:if="{{ocrResult.expireDate}}">
-            <text class="form-label">到期日期</text>
-            <input class="form-input" type="text" value="{{form.expireDate}}" bindinput="onFormInput" data-field="expireDate" />
-          </view>
-        </view>
-        <text class="ocr-hint">识别结果已自动填入下方表单，请核对后提交</text>
-      </view>
-    </view>
-  </view>
-
-  <!-- ==================== 公共表单 ==================== -->
-  <view class="card form-card">
-    <view class="section-title">📝 产品信息</view>
-
-    <!-- Emoji + 名称 -->
     <view class="form-row">
-      <view class="emoji-trigger" bind:tap="showEmojiPicker">
-        <text class="emoji-display">{{form.emoji}}</text>
-        <text class="emoji-change">换</text>
+      <view class="form-item flex-1">
+        <text class="form-label">分类</text>
+        <picker range="{{categoryNames}}" value="{{categoryIndex}}" bindchange="onCategoryChange">
+          <view class="form-picker">{{categoryNames[categoryIndex] || '选择分类'}}</view>
+        </picker>
       </view>
-      <view class="form-group form-group--flex">
-        <text class="form-label">产品名称 *</text>
-        <input class="form-input" type="text" placeholder="如：DeepSeek" value="{{form.name}}" bindinput="onFormInput" data-field="name" />
-      </view>
-    </view>
-
-    <!-- 类别 -->
-    <view class="form-group">
-      <text class="form-label">产品类别</text>
-      <picker mode="selector" range="{{categories}}" range-key="label" bindchange="onCategoryChange">
-        <view class="form-input picker-input">
-          {{categoryLabel || '请选择类别'}}
-          <text class="picker-arrow">▸</text>
-        </view>
-      </picker>
-    </view>
-
-    <!-- 额度 -->
-    <view class="form-row-2col">
-      <view class="form-group form-group--half">
-        <text class="form-label">已用额度</text>
-        <input class="form-input" type="digit" placeholder="0" value="{{form.quotaUsed}}" bindinput="onFormInput" data-field="quotaUsed" />
-      </view>
-      <view class="form-group form-group--half">
-        <text class="form-label">总额度</text>
-        <input class="form-input" type="digit" placeholder="0" value="{{form.quotaTotal}}" bindinput="onFormInput" data-field="quotaTotal" />
+      <view class="form-item flex-1">
+        <text class="form-label">服务商</text>
+        <input class="form-input" placeholder="OpenAI" value="{{provider}}" bindinput="onProviderInput" />
       </view>
     </view>
+  </view>
 
-    <view class="form-group">
-      <text class="form-label">额度单位</text>
-      <input class="form-input" type="text" placeholder="如：元、次、Tokens" value="{{form.quotaUnit}}" bindinput="onFormInput" data-field="quotaUnit" />
-    </view>
-
-    <!-- 到期日 -->
-    <view class="form-group">
-      <text class="form-label">到期日期</text>
-      <picker mode="date" value="{{form.expireDate}}" bindchange="onDateChange">
-        <view class="form-input picker-input">
-          {{form.expireDate || '选择到期日期'}}
-          <text class="picker-arrow">▸</text>
-        </view>
-      </picker>
-    </view>
-
-    <!-- 续费 -->
-    <view class="form-row-2col">
-      <view class="form-group form-group--half">
-        <text class="form-label">续费价格</text>
-        <input class="form-input" type="digit" placeholder="0.00" value="{{form.renewPrice}}" bindinput="onFormInput" data-field="renewPrice" />
+  <!-- 费用信息 -->
+  <view class="card">
+    <view class="card-title">费用信息</view>
+    <view class="form-row">
+      <view class="form-item flex-1">
+        <text class="form-label">金额</text>
+        <input class="form-input" type="digit" placeholder="0.00" value="{{amount}}" bindinput="onAmountInput" />
       </view>
-      <view class="form-group form-group--half">
-        <text class="form-label">续费周期</text>
-        <picker mode="selector" range="{{renewCycles}}" bindchange="onRenewCycleChange">
-          <view class="form-input picker-input">
-            {{form.renewCycle || '选择'}}
-            <text class="picker-arrow">▸</text>
-          </view>
+      <view class="form-item" style="width: 160rpx">
+        <text class="form-label">币种</text>
+        <picker range="{{currencies}}" range-key="label" value="{{currencyIndex}}" bindchange="onCurrencyChange">
+          <view class="form-picker">{{currencies[currencyIndex].label}}</view>
+        </picker>
+      </view>
+      <view class="form-item" style="width: 160rpx">
+        <text class="form-label">周期</text>
+        <picker range="{{cycles}}" range-key="label" value="{{cycleIndex}}" bindchange="onCycleChange">
+          <view class="form-picker">{{cycles[cycleIndex].label}}</view>
         </picker>
       </view>
     </view>
+  </view>
 
-    <!-- 备注 -->
-    <view class="form-group">
-      <text class="form-label">备注</text>
-      <textarea class="form-input form-textarea" placeholder="可选备注信息" value="{{form.notes}}" bindinput="onFormInput" data-field="notes" />
+  <!-- 时间信息 -->
+  <view class="card">
+    <view class="card-title">时间信息</view>
+    <view class="form-row">
+      <view class="form-item flex-1">
+        <text class="form-label">开始日期 *</text>
+        <picker mode="date" value="{{startDate}}" bindchange="onStartDateChange">
+          <view class="form-picker">{{startDate || '选择日期'}}</view>
+        </picker>
+      </view>
+      <view class="form-item flex-1">
+        <text class="form-label">到期日期</text>
+        <picker mode="date" value="{{expireDate}}" bindchange="onExpireDateChange">
+          <view class="form-picker">{{expireDate || '自动计算'}}</view>
+        </picker>
+      </view>
     </view>
+    <view class="form-item">
+      <label class="checkbox-row">
+        <checkbox checked="{{autoRenew}}" bindtap="toggleAutoRenew" color="#E8703A" />
+        <text class="checkbox-text">自动续费</text>
+      </label>
+    </view>
+  </view>
 
-    <!-- 提交 -->
-    <button class="btn-primary btn-submit" bind:tap="submitForm" loading="{{submitting}}" disabled="{{!form.name}}">
-      {{editId ? '保存修改' : '添加产品'}}
+  <!-- 标签 -->
+  <view class="card" wx:if="{{tags.length > 0}}">
+    <view class="card-title">标签</view>
+    <view class="tag-list">
+      <view class="tag-item {{item.selected ? 'tag-selected' : ''}}"
+            wx:for="{{tags}}" wx:key="id"
+            bindtap="toggleTag" data-index="{{index}}"
+            style="{{item.selected ? 'background-color:' + item.color + ';color:white' : ''}}">
+        {{item.name}}
+      </view>
+    </view>
+  </view>
+
+  <!-- 提醒设置 -->
+  <view class="card">
+    <view class="card-title">提醒设置</view>
+    <view class="form-item">
+      <text class="form-label">提醒时机</text>
+      <view class="tag-list">
+        <view class="tag-item {{item.selected ? 'tag-selected' : ''}}"
+              wx:for="{{reminderOptions}}" wx:key="value"
+              bindtap="toggleReminderDay" data-index="{{index}}">
+          {{item.label}}
+        </view>
+      </view>
+    </view>
+    <view class="form-item">
+      <text class="form-label">通知渠道</text>
+      <view class="tag-list">
+        <view class="tag-item {{item.selected ? 'tag-selected' : ''}}"
+              wx:for="{{channelOptions}}" wx:key="value"
+              bindtap="toggleChannel" data-index="{{index}}">
+          {{item.label}}
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 备注 -->
+  <view class="card">
+    <view class="card-title">备注</view>
+    <textarea class="form-textarea" placeholder="添加备注..." value="{{remark}}" bindinput="onRemarkInput" />
+  </view>
+
+  <!-- 提交 -->
+  <view class="submit-area">
+    <button class="btn-primary" bindtap="handleSubmit" disabled="{{submitting}}">
+      {{submitting ? '保存中...' : '保存订阅'}}
     </button>
   </view>
 </view>
-
-<!-- Emoji Picker -->
-<emoji-picker
-  visible="{{emojiPickerVisible}}"
-  current="{{form.emoji}}"
-  bind:select="onEmojiSelect"
-  bind:close="hideEmojiPicker"
-/>

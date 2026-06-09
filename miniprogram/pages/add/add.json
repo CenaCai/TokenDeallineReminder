@@ -1,6 +1,3 @@
 {
-  "usingComponents": {
-    "emoji-picker": "/components/emoji-picker/emoji-picker"
-  },
-  "navigationBarTitleText": "添加产品"
+  "navigationBarTitleText": "添加订阅"
 }

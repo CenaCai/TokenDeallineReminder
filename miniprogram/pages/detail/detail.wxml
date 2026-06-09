@@ -1,98 +1,42 @@
 <!-- pages/detail/detail.wxml -->
-<view class="container safe-bottom">
-  <!-- 加载中 -->
-  <view class="loading-container" wx:if="{{loading}}">
-    <view class="loading-spinner"></view>
+<view class="page">
+  <view class="detail-header">
+    <text class="detail-name">{{subscription.name}}</text>
+    <text class="status-badge {{statusClass(subscription.status)}}">{{statusLabel(subscription.status)}}</text>
   </view>
 
-  <block wx:if="{{!loading && product}}">
-    <!-- 产品头部 -->
-    <view class="detail-header">
-      <view class="detail-emoji">{{product.emoji || '📦'}}</view>
-      <view class="detail-info">
-        <view class="detail-name">{{product.name}}</view>
-        <view class="detail-category">{{categoryLabel}}</view>
-      </view>
-      <view class="tag tag-{{statusType}}">{{statusText}}</view>
-    </view>
+  <view class="card" wx:if="{{subscription.provider}}">
+    <text class="detail-label">服务商</text>
+    <text class="detail-value">{{subscription.provider}}</text>
+  </view>
 
-    <!-- 额度详情 -->
-    <view class="card" wx:if="{{product.quotaTotal > 0}}">
-      <view class="section-title">📊 额度信息</view>
-      <view class="quota-visual">
-        <view class="quota-circle">
-          <text class="quota-percent">{{remainingPercent}}%</text>
-          <text class="quota-label">剩余</text>
-        </view>
-      </view>
-      <view class="quota-detail-row">
-        <text class="detail-key">已用</text>
-        <text class="detail-value">{{product.quotaUsed}}{{product.quotaUnit}}</text>
-      </view>
-      <view class="quota-detail-row">
-        <text class="detail-key">总额</text>
-        <text class="detail-value">{{product.quotaTotal}}{{product.quotaUnit}}</text>
-      </view>
-      <view class="quota-detail-row">
-        <text class="detail-key">剩余</text>
-        <text class="detail-value highlight">{{product.quotaTotal - product.quotaUsed}}{{product.quotaUnit}}</text>
-      </view>
-    </view>
+  <view class="card">
+    <text class="detail-label">费用</text>
+    <text class="detail-value detail-amount">{{formatCurrency(subscription.amount, subscription.currency)}}/{{cycleLabel(subscription.billing_cycle)}}</text>
+  </view>
 
-    <!-- 到期信息 -->
-    <view class="card" wx:if="{{product.expireDate}}">
-      <view class="section-title">⏰ 到期信息</view>
-      <view class="expire-big">
-        <text class="expire-days {{daysLeft <= 7 ? 'expire-urgent' : ''}}">{{daysLeft}}</text>
-        <text class="expire-unit">{{daysLeft >= 0 ? '天后到期' : '天前已过期'}}</text>
-      </view>
-      <view class="quota-detail-row">
-        <text class="detail-key">到期日</text>
-        <text class="detail-value">{{product.expireDate}}</text>
-      </view>
+  <view class="card">
+    <view class="detail-row">
+      <text class="detail-label">开始日期</text>
+      <text class="detail-value">{{subscription.start_date}}</text>
     </view>
+    <view class="detail-row" wx:if="{{subscription.expire_date}}">
+      <text class="detail-label">到期日期</text>
+      <text class="detail-value">{{subscription.expire_date}}</text>
+    </view>
+    <view class="detail-row" wx:if="{{daysText}}">
+      <text class="detail-label">剩余</text>
+      <text class="detail-value theme-primary">{{daysText}}</text>
+    </view>
+  </view>
 
-    <!-- 续费信息 -->
-    <view class="card" wx:if="{{product.renewPrice > 0}}">
-      <view class="section-title">💰 续费信息</view>
-      <view class="renew-big">
-        <text class="renew-symbol">¥</text>
-        <text class="renew-amount">{{product.renewPrice}}</text>
-        <text class="renew-cycle" wx:if="{{product.renewCycle}}">/{{product.renewCycle}}</text>
-      </view>
-    </view>
+  <view class="card" wx:if="{{subscription.remark}}">
+    <text class="detail-label">备注</text>
+    <text class="detail-value">{{subscription.remark}}</text>
+  </view>
 
-    <!-- API 同步 -->
-    <view class="card" wx:if="{{product.apiProvider}}">
-      <view class="section-title">🔄 API 同步</view>
-      <view class="quota-detail-row">
-        <text class="detail-key">提供商</text>
-        <text class="detail-value">{{product.apiProvider}}</text>
-      </view>
-      <view class="quota-detail-row">
-        <text class="detail-key">API Key</text>
-        <text class="detail-value">{{maskedKey}}</text>
-      </view>
-      <view class="quota-detail-row">
-        <text class="detail-key">上次同步</text>
-        <text class="detail-value">{{product.lastSyncTime || '未同步'}}</text>
-      </view>
-      <button class="btn-secondary" style="margin-top: 20rpx;" bind:tap="syncNow" loading="{{syncing}}">
-        🔄 立即同步
-      </button>
-    </view>
-
-    <!-- 备注 -->
-    <view class="card" wx:if="{{product.notes}}">
-      <view class="section-title">📝 备注</view>
-      <text class="notes-text">{{product.notes}}</text>
-    </view>
-
-    <!-- 操作按钮 -->
-    <view class="detail-actions">
-      <button class="btn-secondary" bind:tap="editProduct">✏️ 编辑</button>
-      <button class="btn-secondary" bind:tap="requestSubscribe">🔔 提醒</button>
-      <button class="btn-danger" bind:tap="deleteProduct">🗑️ 删除</button>
-    </view>
-  </block>
+  <view class="action-bar">
+    <button class="btn-outline" bindtap="goEdit">编辑</button>
+    <button class="btn-danger" bindtap="handleDelete">删除</button>
+  </view>
 </view>
