@@ -34,6 +34,30 @@
 const DB = {
   PRODUCTS_KEY: 'quota_tracker_products',
   SETTINGS_KEY: 'quota_tracker_settings',
+  _currentUserId: 'default',
+
+  /* ---- 用户绑定 ---- */
+  setUser(userId) {
+    this._currentUserId = userId || 'default';
+    // 更新 key 为用户维度的 key
+    this.PRODUCTS_KEY = 'qt_products_' + this._currentUserId;
+    this.SETTINGS_KEY = 'qt_settings_' + this._currentUserId;
+  },
+
+  // 将无用户前缀的旧数据迁移到用户维度
+  migrateToUser(userId) {
+    const oldProducts = localStorage.getItem('quota_tracker_products');
+    const oldSettings = localStorage.getItem('quota_tracker_settings');
+    
+    if (oldProducts && !localStorage.getItem('qt_products_' + userId)) {
+      localStorage.setItem('qt_products_' + userId, oldProducts);
+    }
+    if (oldSettings && !localStorage.getItem('qt_settings_' + userId)) {
+      localStorage.setItem('qt_settings_' + userId, oldSettings);
+    }
+    
+    this.setUser(userId);
+  },
 
   /* ---- 产品 CRUD ---- */
   getAll() {

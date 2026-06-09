@@ -9,8 +9,8 @@ const API_PROVIDERS = [
     keyHint: 'sk-xxx，在 platform.deepseek.com 获取',
     endpoint: 'https://api.deepseek.com/user/balance',
     parseBalance: (data) => ({
-      balance: data.balance_infos?.[0]?.available_balance || 0,
-      total: data.balance_infos?.[0]?.total_balance || 0,
+      balance: (data.balance_infos && data.balance_infos[0] && data.balance_infos[0].available_balance) || 0,
+      total: (data.balance_infos && data.balance_infos[0] && data.balance_infos[0].total_balance) || 0,
       unit: '元'
     })
   },

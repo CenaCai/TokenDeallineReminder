@@ -11,6 +11,9 @@ const App = {
      初始化
      ================================================================ */
   init() {
+    // 初始化认证（先检查登录态）
+    Auth.init();
+
     // 注册 Service Worker
     Notifications.registerSW();
 
@@ -29,12 +32,176 @@ const App = {
     this.bindNotifSheet();
     this.bindAlertButtons();
     this.bindListDelegation();
+    this.bindAuthEvents();
+    this.bindUserMenu();
 
     // 启动定时检查
     Notifications.scheduleCheck();
 
     // 更新通知权限卡片
     Notifications.updatePermCard();
+  },
+
+  /* ================================================================
+     登录状态变更
+     ================================================================ */
+  onAuthChange(user) {
+    // 设置 DB 用户维度
+    DB.setUser(user.id);
+    // 重新渲染列表
+    Render.renderList(this.currentFilter);
+    this.updateStats();
+  },
+
+  /* ================================================================
+     登录页面事件
+     ================================================================ */
+  bindAuthEvents() {
+    // 微信登录
+    document.getElementById('btn-wechat-login').addEventListener('click', () => {
+      Auth.loginWithWechat();
+    });
+
+    // 本地模式登录
+    document.getElementById('btn-local-login').addEventListener('click', () => {
+      const nickname = document.getElementById('local-nickname').value.trim();
+      if (!nickname) {
+        Auth.showToast('请输入昵称', 'error');
+        return;
+      }
+      Auth.localLogin(nickname);
+    });
+
+    // 回车触发本地登录
+    document.getElementById('local-nickname').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        document.getElementById('btn-local-login').click();
+      }
+    });
+
+    // 游客模式
+    document.getElementById('btn-guest-login').addEventListener('click', () => {
+      Auth.guestLogin();
+    });
+  },
+
+  /* ================================================================
+     用户菜单
+     ================================================================ */
+  bindUserMenu() {
+    const menuBtn = document.getElementById('user-menu-btn');
+    const closeBtn = document.getElementById('close-user-menu');
+    const overlay = document.getElementById('page-user-menu');
+
+    menuBtn.addEventListener('click', () => {
+      this.openSheet('page-user-menu');
+      this.updateUserMenuStats();
+    });
+
+    closeBtn.addEventListener('click', () => {
+      overlay.classList.add('hidden');
+    });
+
+    overlay.addEventListener('click', (e) => {
+      if (e.target === overlay) overlay.classList.add('hidden');
+    });
+
+    // 退出登录
+    document.getElementById('btn-logout').addEventListener('click', () => {
+      overlay.classList.add('hidden');
+      Auth.logout();
+    });
+
+    // 导出数据
+    document.getElementById('btn-export-data').addEventListener('click', () => {
+      this.exportData();
+    });
+
+    // 导入数据
+    document.getElementById('btn-import-data').addEventListener('click', () => {
+      this.importData();
+    });
+  },
+
+  updateUserMenuStats() {
+    const products = DB.getAll();
+    const alerts = DB.getAlerts();
+    const user = Auth.getCurrentUser();
+
+    document.getElementById('user-stat-products').textContent = products.length;
+    document.getElementById('user-stat-alerts').textContent = alerts.length;
+
+    if (user) {
+      const avatarLarge = document.getElementById('user-avatar-large');
+      const userName = document.getElementById('user-name');
+      const userProvider = document.getElementById('user-provider');
+
+      if (user.avatar) {
+        avatarLarge.innerHTML = '<img src="' + user.avatar + '" alt="avatar" />';
+      } else {
+        avatarLarge.textContent = (user.nickname || '?').charAt(0).toUpperCase();
+      }
+      userName.textContent = user.nickname || '用户';
+      const providerMap = { 'local': '本地模式', 'guest': '游客模式', 'wechat:pc': '微信登录' };
+      userProvider.textContent = providerMap[user.provider] || user.provider || '本地模式';
+    }
+  },
+
+  // 导出数据为 JSON
+  exportData() {
+    const data = {
+      products: DB.getAll(),
+      settings: DB.getSettings(),
+      exportedAt: new Date().toISOString(),
+      version: '1.0.0'
+    };
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = '额度追踪_数据_' + new Date().toLocaleDateString('zh-CN').replace(/\//g, '-') + '.json';
+    a.click();
+    URL.revokeObjectURL(url);
+    Auth.showToast('数据已导出');
+  },
+
+  // 导入数据
+  importData() {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.json';
+    input.onchange = (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        try {
+          const data = JSON.parse(ev.target.result);
+          if (data.products && Array.isArray(data.products)) {
+            // 合并而非覆盖
+            const existing = DB.getAll();
+            const existingIds = new Set(existing.map(p => p.name + p.api_provider));
+            let added = 0;
+            data.products.forEach(p => {
+              if (!existingIds.has(p.name + p.api_provider)) {
+                DB.save(p);
+                added++;
+              }
+            });
+            if (data.settings) DB.saveSettings(data.settings);
+            Render.renderList(this.currentFilter);
+            this.updateStats();
+            Auth.showToast('已导入 ' + added + ' 条数据');
+          } else {
+            Auth.showToast('文件格式不正确', 'error');
+          }
+        } catch (err) {
+          Auth.showToast('解析文件失败', 'error');
+        }
+      };
+      reader.readAsText(file);
+    };
+    input.click();
   },
 
   /* ================================================================

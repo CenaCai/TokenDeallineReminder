@@ -14,13 +14,14 @@ const PROVIDERS = {
     url: 'https://api.deepseek.com/user/balance',
     headers: (key) => ({ 'Authorization': `Bearer ${key}` }),
     parse: (data) => {
-      const info = data.balance_infos?.[0]
+      var infos = data.balance_infos || []
+      var info = infos[0] || {}
       return {
         success: true,
         data: {
-          balance: parseFloat(info?.available_balance || 0),
-          total: parseFloat(info?.total_balance || 0),
-          used: parseFloat(info?.total_balance || 0) - parseFloat(info?.available_balance || 0),
+          balance: parseFloat(info.available_balance || 0),
+          total: parseFloat(info.total_balance || 0),
+          used: parseFloat(info.total_balance || 0) - parseFloat(info.available_balance || 0),
           unit: '元'
         }
       }
@@ -63,7 +64,7 @@ async function fetchQuota(provider, apiKey) {
     console.error(`查询 ${provider} 失败:`, err.message)
     return {
       success: false,
-      message: `查询失败: ${err.response?.status || err.message}`
+      message: '查询失败: ' + (err.response ? err.response.status : err.message)
     }
   }
 }

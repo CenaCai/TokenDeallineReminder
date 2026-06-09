@@ -33,7 +33,19 @@
   "compileType": "miniprogram",
   "libVersion": "3.7.5",
   "packOptions": {
-    "ignore": [],
+    "ignore": [
+      { "type": "folder", "value": "node_modules" },
+      { "type": "folder", "value": "scripts" },
+      { "type": "file", "value": "package.json" },
+      { "type": "file", "value": "package-lock.json" },
+      { "type": "file", "value": "ci-config.json" },
+      { "type": "file", "value": ".env.ci" },
+      { "type": "glob", "value": "*.key" },
+      { "type": "glob", "value": "DEPLOY.md" },
+      { "type": "glob", "value": "CI-SETUP.md" },
+      { "type": "glob", "value": "CI-README.md" },
+      { "type": "folder", "value": ".github" }
+    ],
     "include": []
   },
   "description": "额度追踪小程序 - 记录产品限时/额度，定时提醒续费"

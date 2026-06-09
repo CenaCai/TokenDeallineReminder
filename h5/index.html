@@ -13,6 +13,46 @@
 </head>
 <body>
 
+  <!-- ===== 登录页面 ===== -->
+  <div class="login-page" id="page-login" style="display:none;">
+    <div class="login-container">
+      <div class="login-brand">
+        <div class="login-logo">◎</div>
+        <h1 class="login-title">额度追踪</h1>
+        <p class="login-subtitle">记录产品限时与额度，定时提醒续费</p>
+      </div>
+
+      <div class="login-methods">
+        <!-- 微信登录按钮 -->
+        <button class="btn-wechat-login" id="btn-wechat-login">
+          <svg class="wechat-icon" viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
+            <path d="M8.691 2.188C3.891 2.188 0 5.476 0 9.53c0 2.212 1.17 4.203 3.002 5.55a.59.59 0 0 1 .212.665l-.39 1.48c-.019.07-.048.141-.048.213 0 .163.13.295.29.295a.326.326 0 0 0 .167-.054l1.9-1.106a.61.61 0 0 1 .476-.06c.886.252 1.833.39 2.82.39.311 0 .617-.015.922-.04a5.72 5.72 0 0 1-.263-1.699c0-3.59 3.353-6.503 7.491-6.503.28 0 .554.015.826.039C16.354 4.798 12.825 2.188 8.69 2.188zm-2.6 4.17a1.12 1.12 0 1 1 0 2.24 1.12 1.12 0 0 1 0-2.24zm5.198 0a1.12 1.12 0 1 1 0 2.24 1.12 1.12 0 0 1 0-2.24zM16.578 9.5c-3.525 0-6.382 2.416-6.382 5.396 0 2.98 2.857 5.396 6.382 5.396.765 0 1.503-.113 2.193-.318a.47.47 0 0 1 .367.047l1.465.852a.252.252 0 0 0 .129.042.227.227 0 0 0 .224-.227c0-.055-.022-.11-.037-.164l-.3-1.142a.457.457 0 0 1 .164-.513C22.377 17.778 22.96 16.4 22.96 14.896c0-2.98-2.857-5.396-6.382-5.396zm-2.358 3.27a.866.866 0 1 1 0 1.733.866.866 0 0 1 0-1.733zm4.716 0a.866.866 0 1 1 0 1.733.866.866 0 0 1 0-1.733z"/>
+          </svg>
+          微信登录
+        </button>
+
+        <div class="login-divider">
+          <span>或</span>
+        </div>
+
+        <!-- 本地模式登录 -->
+        <div class="local-login">
+          <input type="text" class="form-input" id="local-nickname" placeholder="输入昵称快速开始" maxlength="20" />
+          <button class="btn-local-login" id="btn-local-login">本地模式开始</button>
+        </div>
+
+        <button class="btn-guest-login" id="btn-guest-login">游客模式体验</button>
+      </div>
+
+      <div class="login-footer">
+        <p>微信登录需配置 Authing，<a href="https://www.authing.cn" target="_blank" rel="noopener">了解详情</a></p>
+      </div>
+
+      <!-- Authing Guard 容器 -->
+      <div id="auth-guard-container"></div>
+    </div>
+  </div>
+
   <!-- ===== 顶部导航 ===== -->
   <header class="app-header">
     <div class="header-inner">
@@ -20,9 +60,14 @@
         <span class="app-icon">◎</span>
         额度追踪
       </h1>
-      <button class="header-btn" id="notif-btn" title="通知设置" aria-label="通知设置">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-      </button>
+      <div class="header-right">
+        <button class="header-btn" id="notif-btn" title="通知设置" aria-label="通知设置">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        </button>
+        <button class="header-btn avatar-btn" id="user-menu-btn" title="用户" aria-label="用户菜单">
+          <span class="avatar-text" id="user-avatar">?</span>
+        </button>
+      </div>
     </div>
     <!-- 统计摘要 -->
     <div class="stats-bar">
@@ -257,6 +302,52 @@
     </div>
   </div>
 
+  <!-- ===== 用户菜单弹窗 ===== -->
+  <div class="page-overlay hidden" id="page-user-menu">
+    <div class="bottom-sheet" id="user-menu-sheet">
+      <div class="sheet-handle"></div>
+      <div class="sheet-header">
+        <h2 class="sheet-title">我的账户</h2>
+        <button class="sheet-close" id="close-user-menu">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="user-menu-body">
+        <div class="user-profile-card">
+          <div class="user-avatar-large" id="user-avatar-large">?</div>
+          <div class="user-info">
+            <h3 class="user-name" id="user-name">用户</h3>
+            <p class="user-provider" id="user-provider">本地模式</p>
+          </div>
+        </div>
+        <div class="user-stats" id="user-stats">
+          <div class="user-stat-item">
+            <span class="user-stat-num" id="user-stat-products">0</span>
+            <span class="user-stat-label">追踪产品</span>
+          </div>
+          <div class="user-stat-item">
+            <span class="user-stat-num" id="user-stat-alerts">0</span>
+            <span class="user-stat-label">待处理提醒</span>
+          </div>
+        </div>
+        <div class="user-actions">
+          <button class="user-action-btn" id="btn-export-data">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            导出数据
+          </button>
+          <button class="user-action-btn" id="btn-import-data">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            导入数据
+          </button>
+          <button class="user-action-btn danger" id="btn-logout">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+            退出登录
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- ===== 应用内提醒 Toast ===== -->
   <div class="toast-container" id="toast-container"></div>
 
@@ -278,6 +369,7 @@
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
   </button>
 
+  <script src="js/auth.js"></script>
   <script src="js/db.js"></script>
   <script src="js/notifications.js"></script>
   <script src="js/api-providers.js"></script>
