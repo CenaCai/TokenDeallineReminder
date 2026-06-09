@@ -1,0 +1,136 @@
+<!-- pages/settings/settings.wxml -->
+<view class="container safe-bottom">
+
+  <!-- 提醒设置 -->
+  <view class="card">
+    <view class="section-title">🔔 提醒设置</view>
+
+    <view class="setting-item">
+      <view class="setting-info">
+        <text class="setting-name">开启通知提醒</text>
+        <text class="setting-desc">接收额度不足、到期提醒</text>
+      </view>
+      <switch
+        checked="{{settings.notificationsEnabled}}"
+        color="#E8703A"
+        bindchange="onToggleNotification"
+      />
+    </view>
+
+    <view class="divider"></view>
+
+    <view class="setting-item">
+      <view class="setting-info">
+        <text class="setting-name">额度告急阈值</text>
+        <text class="setting-desc">低于此比例时触发提醒</text>
+      </view>
+      <view class="setting-value-group">
+        <text class="setting-value">{{settings.quotaThreshold}}%</text>
+        <slider
+          min="5"
+          max="50"
+          step="5"
+          value="{{settings.quotaThreshold}}"
+          activeColor="#E8703A"
+          backgroundColor="#FFF0E8"
+          block-size="20"
+          bindchange="onQuotaThresholdChange"
+        />
+      </view>
+    </view>
+
+    <view class="divider"></view>
+
+    <view class="setting-item">
+      <view class="setting-info">
+        <text class="setting-name">到期提前提醒天数</text>
+        <text class="setting-desc">到期前几天开始提醒</text>
+      </view>
+      <view class="setting-value-group">
+        <text class="setting-value">{{settings.expireWarningDays}}天</text>
+        <slider
+          min="1"
+          max="30"
+          step="1"
+          value="{{settings.expireWarningDays}}"
+          activeColor="#E8703A"
+          backgroundColor="#FFF0E8"
+          block-size="20"
+          bindchange="onExpireWarningChange"
+        />
+      </view>
+    </view>
+
+    <view class="divider"></view>
+
+    <view class="setting-item">
+      <view class="setting-info">
+        <text class="setting-name">每日检查时间</text>
+        <text class="setting-desc">每天定时检查一次额度</text>
+      </view>
+      <picker mode="time" value="{{settings.dailyCheckTime}}" bindchange="onDailyCheckTimeChange">
+        <view class="setting-picker">
+          {{settings.dailyCheckTime}}
+          <text class="picker-arrow">▸</text>
+        </view>
+      </picker>
+    </view>
+  </view>
+
+  <!-- 订阅消息 -->
+  <view class="card">
+    <view class="section-title">📩 订阅消息</view>
+    <view class="subscribe-desc">
+      微信订阅消息需要您主动授权。点击下方按钮开启提醒推送，每次授权仅发送一次通知，如需持续提醒请定期重新授权。
+    </view>
+    <button class="btn-primary" bind:tap="requestSubscribeAll" style="margin-top: 20rpx;">
+      🔔 授权提醒通知
+    </button>
+  </view>
+
+  <!-- 数据管理 -->
+  <view class="card">
+    <view class="section-title">💾 数据管理</view>
+
+    <view class="setting-item" bind:tap="syncAll">
+      <view class="setting-info">
+        <text class="setting-name">🔄 全量同步</text>
+        <text class="setting-desc">同步所有 API 接入产品的最新额度</text>
+      </view>
+      <text class="setting-arrow">▸</text>
+    </view>
+
+    <view class="divider"></view>
+
+    <view class="setting-item" bind:tap="exportData">
+      <view class="setting-info">
+        <text class="setting-name">📤 导出数据</text>
+        <text class="setting-desc">将产品数据导出为 JSON 文件</text>
+      </view>
+      <text class="setting-arrow">▸</text>
+    </view>
+
+    <view class="divider"></view>
+
+    <view class="setting-item" bind:tap="clearAllData">
+      <view class="setting-info">
+        <text class="setting-name danger-text">🗑️ 清空数据</text>
+        <text class="setting-desc">删除所有产品数据，不可恢复</text>
+      </view>
+      <text class="setting-arrow">▸</text>
+    </view>
+  </view>
+
+  <!-- 关于 -->
+  <view class="card">
+    <view class="section-title">ℹ️ 关于</view>
+    <view class="about-content">
+      <view class="about-logo">◎</view>
+      <text class="about-name">额度追踪</text>
+      <text class="about-version">v1.0.0</text>
+    </view>
+    <view class="about-links">
+      <text class="about-link" bind:tap="copyFeedback">反馈与建议 →</text>
+    </view>
+  </view>
+</view>

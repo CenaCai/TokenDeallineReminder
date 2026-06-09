@@ -1,0 +1,40 @@
+{
+  "miniprogramRoot": "./",
+  "cloudfunctionRoot": "cloudfunctions/",
+  "setting": {
+    "urlCheck": true,
+    "es6": true,
+    "enhance": true,
+    "postcss": true,
+    "preloadBackgroundData": false,
+    "minified": true,
+    "newFeature": true,
+    "coverView": true,
+    "nodeModules": false,
+    "autoAudits": false,
+    "showShadowRootInWxmlPanel": true,
+    "scopeDataCheck": false,
+    "uglifyFileName": false,
+    "checkInvalidKey": true,
+    "checkSiteMap": true,
+    "uploadWithSourceMap": true,
+    "compileHotReLoad": false,
+    "babelSetting": {
+      "ignore": [],
+      "disablePlugins": [],
+      "outputPath": ""
+    }
+  },
+  "appid": "wx24b81bb6575cd337",
+  "projectname": "quota-tracker",
+  "cloudfunctionTemplateRoot": "",
+  "condition": {},
+  "srcMiniprogramRoot": "./",
+  "compileType": "miniprogram",
+  "libVersion": "3.7.5",
+  "packOptions": {
+    "ignore": [],
+    "include": []
+  },
+  "description": "额度追踪小程序 - 记录产品限时/额度，定时提醒续费"
+}

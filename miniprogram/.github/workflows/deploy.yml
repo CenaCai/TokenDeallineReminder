@@ -1,0 +1,104 @@
+# 微信小程序自动部署工作流
+# 触发条件：推送到 main 分支时自动上传开发版；打 tag 时上传正式版
+
+name: 小程序 CI/CD
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'quota-tracker-miniprogram/**'
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: '部署环境'
+        required: true
+        default: 'dev'
+        type: choice
+        options:
+          - dev
+          - prod
+      preview_only:
+        description: '仅生成预览码（不上传）'
+        required: false
+        type: boolean
+        default: false
+
+env:
+  NODE_VERSION: '18'
+
+jobs:
+  upload:
+    runs-on: ubuntu-latest
+    environment: ${{ github.event.inputs.environment || 'dev' }}
+
+    steps:
+      - name: 📥 检出代码
+        uses: actions/checkout@v4
+
+      - name: 🟢 安装 Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: quota-tracker-miniprogram/package.json
+
+      - name: 📦 安装依赖
+        working-directory: quota-tracker-miniprogram
+        run: npm ci
+
+      - name: 🔑 配置密钥
+        working-directory: quota-tracker-miniprogram
+        run: |
+          echo "${{ secrets.MP_PRIVATE_KEY }}" > private.${{ secrets.MP_APPID }}.key
+          echo "✅ 密钥已写入"
+
+      - name: 📤 上传小程序（开发版）
+        if: ${{ github.event.inputs.preview_only != 'true' }}
+        working-directory: quota-tracker-miniprogram
+        env:
+          MP_APPID: ${{ secrets.MP_APPID }}
+          MP_PRIVATE_KEY_PATH: ./private.${{ secrets.MP_APPID }}.key
+        run: |
+          ENV="${{ github.event.inputs.environment || 'dev' }}"
+          DESC="CI auto deploy from ${GITHUB_SHA:0:7}"
+          npm run upload -- --env $ENV --desc "$DESC" --ci
+
+      - name: 🔍 生成预览码
+        if: ${{ github.event.inputs.preview_only == 'true' }}
+        working-directory: quota-tracker-miniprogram
+        env:
+          MP_APPID: ${{ secrets.MP_APPID }}
+          MP_PRIVATE_KEY_PATH: ./private.${{ secrets.MP_APPID }}.key
+        run: npm run upload:preview -- --ci
+
+      - name: 📋 上传预览二维码
+        if: ${{ github.event.inputs.preview_only == 'true' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: preview-qrcode
+          path: quota-tracker-miniprogram/preview-qrcode.png
+          retention-days: 7
+
+      - name: 🧹 清理密钥
+        if: always()
+        working-directory: quota-tracker-miniprogram
+        run: rm -f private.*.key
+
+  # 部署云函数
+  deploy-cloud:
+    runs-on: ubuntu-latest
+    needs: upload
+    if: ${{ github.ref == 'refs/heads/main' }}
+
+    steps:
+      - name: 📥 检出代码
+        uses: actions/checkout@v4
+
+      - name: 🚀 提醒：云函数需手动部署
+        run: |
+          echo "⚠️ 云函数暂不支持 CI 自动部署"
+          echo "请在微信开发者工具中手动操作："
+          echo "  1. 右键 cloudfunctions/checkQuota → 上传并部署"
+          echo "  2. 右键 cloudfunctions/sendReminder → 上传并部署"
+          echo "  3. 在云开发控制台配置 sendReminder 的定时触发器"

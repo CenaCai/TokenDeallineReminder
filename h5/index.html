@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#faf7f2" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="额度追踪" />
+  <title>额度追踪</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+
+  <!-- ===== 顶部导航 ===== -->
+  <header class="app-header">
+    <div class="header-inner">
+      <h1 class="app-title">
+        <span class="app-icon">◎</span>
+        额度追踪
+      </h1>
+      <button class="header-btn" id="notif-btn" title="通知设置" aria-label="通知设置">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+      </button>
+    </div>
+    <!-- 统计摘要 -->
+    <div class="stats-bar">
+      <div class="stat-item">
+        <span class="stat-num" id="stat-total">0</span>
+        <span class="stat-label">产品总数</span>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat-item">
+        <span class="stat-num warn" id="stat-warn">0</span>
+        <span class="stat-label">需要关注</span>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat-item">
+        <span class="stat-num ok" id="stat-ok">0</span>
+        <span class="stat-label">状态正常</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- ===== 主页面容器 ===== -->
+  <main class="main-content" id="page-home">
+
+    <!-- 筛选标签栏 -->
+    <div class="filter-bar">
+      <button class="filter-chip active" data-filter="all">全部</button>
+      <button class="filter-chip" data-filter="expiring">即将到期</button>
+      <button class="filter-chip" data-filter="low">额度不足</button>
+      <button class="filter-chip" data-filter="normal">状态正常</button>
+    </div>
+
+    <!-- 产品卡片列表 -->
+    <div class="product-list" id="product-list">
+      <!-- 空状态 -->
+      <div class="empty-state" id="empty-state">
+        <div class="empty-icon">📦</div>
+        <p class="empty-title">还没有产品记录</p>
+        <p class="empty-desc">点击右下角 + 开始添加你的第一个产品</p>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- ===== 添加/录入页面 ===== -->
+  <div class="page-overlay hidden" id="page-add">
+    <div class="bottom-sheet" id="add-sheet">
+      <div class="sheet-handle"></div>
+      <div class="sheet-header">
+        <h2 class="sheet-title">添加产品</h2>
+        <button class="sheet-close" id="close-add">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+
+      <!-- 录入方式选择 -->
+      <div class="input-methods">
+        <button class="method-btn active" data-method="api">
+          <span class="method-icon">⚡</span>
+          <span class="method-label">API 接入</span>
+        </button>
+        <button class="method-btn" data-method="ocr">
+          <span class="method-icon">📷</span>
+          <span class="method-label">截图识别</span>
+        </button>
+        <button class="method-btn" data-method="manual">
+          <span class="method-icon">✏️</span>
+          <span class="method-label">手动录入</span>
+        </button>
+      </div>
+
+      <!-- API 接入面板 -->
+      <div class="method-panel" id="panel-api">
+        <div class="form-tip">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          输入 API Key 后系统将自动拉取余额信息
+        </div>
+        <div class="form-group">
+          <label class="form-label">选择服务商</label>
+          <select class="form-select" id="api-provider">
+            <option value="">请选择服务商</option>
+            <option value="openai">OpenAI</option>
+            <option value="anthropic">Anthropic (Claude)</option>
+            <option value="deepseek">DeepSeek</option>
+            <option value="zhipu">智谱 AI</option>
+            <option value="minimax">MiniMax</option>
+            <option value="aliyun">阿里云</option>
+            <option value="tencent">腾讯云</option>
+            <option value="custom">自定义</option>
+          </select>
+        </div>
+        <div class="form-group" id="api-custom-name-group" style="display:none">
+          <label class="form-label">服务名称</label>
+          <input type="text" class="form-input" id="api-custom-name" placeholder="例如：我的AI服务" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">API Key</label>
+          <div class="input-with-toggle">
+            <input type="password" class="form-input" id="api-key-input" placeholder="sk-..." />
+            <button class="toggle-vis" id="toggle-key-vis" type="button">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+          </div>
+        </div>
+        <button class="btn-primary" id="btn-fetch-api">
+          <span>自动获取余额</span>
+          <svg class="spin-icon hidden" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+        </button>
+        <div class="api-result hidden" id="api-result">
+          <div class="result-row">
+            <span class="result-label">账户余额</span>
+            <span class="result-value" id="api-balance">--</span>
+          </div>
+          <div class="result-row">
+            <span class="result-label">到期时间</span>
+            <span class="result-value" id="api-expire">--</span>
+          </div>
+          <button class="btn-save-api btn-primary" id="btn-save-api">保存此产品</button>
+        </div>
+      </div>
+
+      <!-- OCR 截图识别面板 -->
+      <div class="method-panel hidden" id="panel-ocr">
+        <div class="form-tip">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          上传账单截图，AI 将自动识别产品信息并填写
+        </div>
+        <div class="upload-zone" id="upload-zone">
+          <input type="file" id="file-input" accept="image/*" class="file-input-hidden" />
+          <div class="upload-placeholder" id="upload-placeholder">
+            <div class="upload-icon">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+            </div>
+            <p class="upload-text">点击上传截图</p>
+            <p class="upload-hint">支持 JPG、PNG、截屏</p>
+          </div>
+          <img id="preview-img" class="preview-img hidden" alt="预览" />
+        </div>
+        <button class="btn-primary" id="btn-ocr-analyze">
+          <span>开始识别</span>
+          <svg class="spin-icon hidden" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+        </button>
+        <div class="ocr-result hidden" id="ocr-result">
+          <p class="ocr-result-title">识别结果（可修改）</p>
+          <!-- OCR 结果会回填到手动表单 -->
+        </div>
+      </div>
+
+      <!-- 手动录入面板 -->
+      <div class="method-panel hidden" id="panel-manual">
+        <div class="form-tip manual-tip">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          建议优先使用 API 接入或截图识别，减少手动操作
+        </div>
+        <div id="manual-form">
+          <!-- 手动表单内容由 JS 填充 -->
+        </div>
+        <button class="btn-primary" id="btn-save-manual">保存产品</button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ===== 产品详情页面 ===== -->
+  <div class="page-overlay hidden" id="page-detail">
+    <div class="bottom-sheet detail-sheet" id="detail-sheet">
+      <div class="sheet-handle"></div>
+      <div class="sheet-header">
+        <h2 class="sheet-title" id="detail-title">产品详情</h2>
+        <button class="sheet-close" id="close-detail">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="detail-body" id="detail-body">
+        <!-- 动态渲染 -->
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 通知设置弹窗 ===== -->
+  <div class="page-overlay hidden" id="page-notif">
+    <div class="bottom-sheet" id="notif-sheet">
+      <div class="sheet-handle"></div>
+      <div class="sheet-header">
+        <h2 class="sheet-title">通知与提醒设置</h2>
+        <button class="sheet-close" id="close-notif">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="notif-body">
+        <div class="notif-perm-card" id="notif-perm-card">
+          <div class="notif-perm-icon">🔔</div>
+          <p class="notif-perm-title">开启系统通知</p>
+          <p class="notif-perm-desc">授权后可在后台收到到期和额度不足提醒</p>
+          <button class="btn-primary" id="btn-request-notif">授权通知权限</button>
+        </div>
+        <div class="setting-section">
+          <h3 class="section-label">提醒规则</h3>
+          <div class="setting-row">
+            <div class="setting-info">
+              <span class="setting-name">额度不足提醒</span>
+              <span class="setting-desc">当剩余额度低于以下百分比时提醒</span>
+            </div>
+            <select class="setting-select" id="low-quota-threshold">
+              <option value="10">10%</option>
+              <option value="20" selected>20%</option>
+              <option value="30">30%</option>
+              <option value="50">50%</option>
+            </select>
+          </div>
+          <div class="setting-row">
+            <div class="setting-info">
+              <span class="setting-name">到期提前提醒</span>
+              <span class="setting-desc">到期前多少天开始提醒</span>
+            </div>
+            <select class="setting-select" id="expire-days-before">
+              <option value="3">3天</option>
+              <option value="7" selected>7天</option>
+              <option value="14">14天</option>
+              <option value="30">30天</option>
+            </select>
+          </div>
+          <div class="setting-row">
+            <div class="setting-info">
+              <span class="setting-name">每日检查时间</span>
+              <span class="setting-desc">每天自动检查并提醒</span>
+            </div>
+            <input type="time" class="setting-select" id="daily-check-time" value="09:00" />
+          </div>
+        </div>
+        <button class="btn-save-settings" id="btn-save-settings">保存设置</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 应用内提醒 Toast ===== -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <!-- ===== 应用内提醒弹窗 ===== -->
+  <div class="alert-overlay hidden" id="alert-overlay">
+    <div class="alert-card" id="alert-card">
+      <div class="alert-icon" id="alert-icon">⚠️</div>
+      <h3 class="alert-title" id="alert-title">提醒</h3>
+      <p class="alert-msg" id="alert-msg"></p>
+      <div class="alert-actions">
+        <button class="btn-alert-later" id="btn-alert-later">稍后再说</button>
+        <button class="btn-alert-ok" id="btn-alert-ok">知道了</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 浮动添加按钮 ===== -->
+  <button class="fab" id="fab-add" aria-label="添加产品">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+  </button>
+
+  <script src="js/db.js"></script>
+  <script src="js/notifications.js"></script>
+  <script src="js/api-providers.js"></script>
+  <script src="js/ocr.js"></script>
+  <script src="js/render.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,20 @@
+/* 用 canvas 生成 PNG 图标的临时页面 */
+<!DOCTYPE html>
+<html><head><meta charset="UTF-8"></head>
+<body>
+<canvas id="c" width="192" height="192"></canvas>
+<script>
+const c = document.getElementById('c');
+const ctx = c.getContext('2d');
+const r = 42;
+ctx.fillStyle = '#e8703a';
+ctx.beginPath();
+ctx.roundRect(0,0,192,192,r);
+ctx.fill();
+ctx.fillStyle = 'white';
+ctx.font = 'bold 90px sans-serif';
+ctx.textAlign = 'center';
+ctx.textBaseline = 'middle';
+ctx.fillText('◎', 96, 100);
+</script>
+</body></html>

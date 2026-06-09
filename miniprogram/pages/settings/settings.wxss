@@ -1,0 +1,124 @@
+/* pages/settings/settings.wxss */
+
+.setting-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16rpx 0;
+}
+
+.setting-info {
+  flex: 1;
+}
+
+.setting-name {
+  font-size: 30rpx;
+  font-weight: 500;
+  color: var(--text-primary);
+  display: block;
+}
+
+.setting-desc {
+  font-size: 24rpx;
+  color: var(--text-tertiary);
+  margin-top: 4rpx;
+  display: block;
+}
+
+.danger-text {
+  color: var(--danger) !important;
+}
+
+.setting-value-group {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  min-width: 240rpx;
+}
+
+.setting-value {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: var(--accent);
+  margin-bottom: 8rpx;
+}
+
+.setting-value-group slider {
+  width: 200rpx;
+  margin: 0;
+}
+
+.setting-picker {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  font-size: 28rpx;
+  font-weight: 600;
+  color: var(--accent);
+  padding: 12rpx 20rpx;
+  background: var(--accent-light);
+  border-radius: var(--radius-sm);
+}
+
+.picker-arrow {
+  font-size: 24rpx;
+  color: var(--text-tertiary);
+}
+
+.setting-arrow {
+  font-size: 28rpx;
+  color: var(--text-tertiary);
+  margin-left: 16rpx;
+}
+
+/* 订阅描述 */
+.subscribe-desc {
+  font-size: 24rpx;
+  color: var(--text-secondary);
+  line-height: 1.8;
+  padding: 8rpx 0;
+}
+
+/* 关于 */
+.about-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 24rpx 0;
+}
+
+.about-logo {
+  width: 80rpx;
+  height: 80rpx;
+  background: var(--accent-gradient);
+  border-radius: var(--radius-lg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 40rpx;
+  color: #FFFFFF;
+  font-weight: 700;
+  margin-bottom: 16rpx;
+}
+
+.about-name {
+  font-size: 32rpx;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.about-version {
+  font-size: 24rpx;
+  color: var(--text-tertiary);
+  margin-top: 4rpx;
+}
+
+.about-links {
+  margin-top: 16rpx;
+  text-align: center;
+}
+
+.about-link {
+  font-size: 26rpx;
+  color: var(--accent);
+}

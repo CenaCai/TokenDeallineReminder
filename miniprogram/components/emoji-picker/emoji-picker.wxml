@@ -1,0 +1,25 @@
+<!-- components/emoji-picker/emoji-picker.wxml -->
+<view class="emoji-picker" wx:if="{{visible}}">
+  <view class="emoji-overlay" bind:tap="onClose"></view>
+  <view class="emoji-panel">
+    <view class="emoji-header">
+      <text class="emoji-title">选择图标</text>
+      <view class="emoji-close" bind:tap="onClose">✕</view>
+    </view>
+    <view class="emoji-grid">
+      <view
+        class="emoji-item {{selected === item ? 'emoji-item--active' : ''}}"
+        wx:for="{{emojis}}"
+        wx:key="*this"
+        bind:tap="onSelect"
+        data-emoji="{{item}}"
+      >
+        {{item}}
+      </view>
+    </view>
+    <view class="emoji-preview" wx:if="{{selected}}">
+      <text class="preview-emoji">{{selected}}</text>
+      <text class="preview-text">已选择</text>
+    </view>
+  </view>
+</view>

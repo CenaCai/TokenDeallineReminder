@@ -1,0 +1,101 @@
+name: Release & Deploy
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+    branches: [main]
+
+jobs:
+  # ====== H5 版本：部署到 GitHub Pages ======
+  deploy-h5:
+    name: Deploy H5 to Pages
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v'))
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: './h5'
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+  # ====== 小程序版本：CI 上传 ======
+  deploy-miniprogram:
+    name: Upload Mini Program
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v') && contains(github.ref, '-mp')
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: miniprogram/package-lock.json
+
+      - name: Install dependencies
+        run: |
+          cd miniprogram
+          npm ci
+
+      - name: Upload Mini Program
+        env:
+          MP_APPID: ${{ secrets.MP_APPID }}
+          MP_PRIVATE_KEY: ${{ secrets.MP_PRIVATE_KEY }}
+        run: |
+          cd miniprogram
+          TAG_NAME=${GITHUB_REF#refs/tags/}
+          VERSION="${TAG_NAME#v}"
+          node scripts/upload.js --env prod --desc "Release ${TAG_NAME}" --ci
+
+  # ====== 预览版：PR 时生成小程序预览码 ======
+  preview-miniprogram:
+    name: Preview Mini Program
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request' && contains(github.base_ref, 'main')
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: miniprogram/package-lock.json
+
+      - name: Install dependencies
+        run: |
+          cd miniprogram
+          npm ci
+
+      - name: Generate Preview QR
+        env:
+          MP_APPID: ${{ secrets.MP_APPID }}
+          MP_PRIVATE_KEY: ${{ secrets.MP_PRIVATE_KEY }}
+        run: |
+          cd miniprogram
+          node scripts/upload.js --preview --env dev --desc "PR #${{ github.event.number }}" --ci
+
+      - name: Upload Preview QR
+        uses: actions/upload-artifact@v4
+        with:
+          name: preview-qrcode
+          path: miniprogram/preview-qrcode.png
+          retention-days: 7

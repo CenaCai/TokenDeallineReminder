@@ -1,0 +1,165 @@
+/* pages/detail/detail.wxss */
+
+/* 头部 */
+.detail-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 24rpx;
+}
+
+.detail-emoji {
+  width: 96rpx;
+  height: 96rpx;
+  background: var(--accent-light);
+  border-radius: var(--radius-lg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 52rpx;
+  flex-shrink: 0;
+}
+
+.detail-info {
+  flex: 1;
+  margin-left: 24rpx;
+}
+
+.detail-name {
+  font-size: 36rpx;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.detail-category {
+  font-size: 24rpx;
+  color: var(--text-tertiary);
+  margin-top: 4rpx;
+}
+
+/* 额度环 */
+.quota-visual {
+  display: flex;
+  justify-content: center;
+  margin: 24rpx 0;
+}
+
+.quota-circle {
+  width: 200rpx;
+  height: 200rpx;
+  border-radius: 50%;
+  background: var(--bg-secondary);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.quota-percent {
+  font-size: 48rpx;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.quota-label {
+  font-size: 22rpx;
+  color: var(--text-tertiary);
+}
+
+/* 详情行 */
+.quota-detail-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 12rpx 0;
+  border-bottom: 1rpx solid var(--border);
+}
+
+.quota-detail-row:last-child {
+  border-bottom: none;
+}
+
+.detail-key {
+  font-size: 26rpx;
+  color: var(--text-secondary);
+}
+
+.detail-value {
+  font-size: 28rpx;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.detail-value.highlight {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+/* 到期 */
+.expire-big {
+  display: flex;
+  align-items: baseline;
+  gap: 8rpx;
+  justify-content: center;
+  margin: 20rpx 0;
+}
+
+.expire-days {
+  font-size: 72rpx;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+.expire-urgent {
+  color: var(--danger) !important;
+}
+
+.expire-unit {
+  font-size: 26rpx;
+  color: var(--text-secondary);
+}
+
+/* 续费 */
+.renew-big {
+  display: flex;
+  align-items: baseline;
+  gap: 4rpx;
+  justify-content: center;
+  margin: 20rpx 0;
+}
+
+.renew-symbol {
+  font-size: 32rpx;
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.renew-amount {
+  font-size: 56rpx;
+  font-weight: 800;
+  color: var(--accent);
+}
+
+.renew-cycle {
+  font-size: 26rpx;
+  color: var(--text-tertiary);
+}
+
+/* 备注 */
+.notes-text {
+  font-size: 28rpx;
+  color: var(--text-secondary);
+  line-height: 1.8;
+}
+
+/* 操作按钮 */
+.detail-actions {
+  display: flex;
+  gap: 16rpx;
+  margin-top: 32rpx;
+  padding-bottom: 40rpx;
+}
+
+.detail-actions .btn-secondary,
+.detail-actions .btn-danger {
+  flex: 1;
+}

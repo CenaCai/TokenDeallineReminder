@@ -1,0 +1,7 @@
+# CI 配置模板 — 复制为 ci-config.json 后填入实际值
+# ⚠️ 此文件包含敏感信息，已被 .gitignore 忽略
+
+{
+  "appid": "wx1234567890abcdef",
+  "privateKeyPath": "./private.wx1234567890abcdef.key"
+}

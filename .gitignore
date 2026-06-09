@@ -1,0 +1,34 @@
+# ============ 通用 ============
+.DS_Store
+Thumbs.db
+*.log
+*.swp
+*.swo
+*~
+
+# ============ 编辑器 ============
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# ============ H5 版本 ============
+h5/node_modules/
+
+# ============ 小程序版本 ============
+miniprogram/node_modules/
+miniprogram/ci-config.json
+miniprogram/private.*.key
+miniprogram/.env.ci
+miniprogram/.env
+miniprogram/miniprogram_npm/
+
+# ============ 云函数 ============
+miniprogram/cloudfunctions/*/node_modules/
+
+# ============ 密钥与敏感信息 ============
+*.key
+*.pem
+.env
+.env.*
+!.env.*.template

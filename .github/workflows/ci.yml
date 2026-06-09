@@ -1,0 +1,45 @@
+name: CI Check
+
+on:
+  push:
+    branches: [develop]
+  pull_request:
+    branches: [develop]
+
+jobs:
+  lint-h5:
+    name: Check H5
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate HTML
+        run: |
+          # 检查 H5 文件完整性
+          test -f h5/index.html && echo "✅ index.html exists"
+          test -f h5/css/styles.css && echo "✅ styles.css exists"
+          test -f h5/sw.js && echo "✅ sw.js exists"
+          test -f h5/manifest.json && echo "✅ manifest.json exists"
+          echo "H5 files OK"
+
+  lint-miniprogram:
+    name: Check Mini Program
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install dependencies
+        run: |
+          cd miniprogram
+          npm ci
+      - name: Validate structure
+        run: |
+          # 检查小程序文件完整性
+          test -f miniprogram/app.json && echo "✅ app.json exists"
+          test -f miniprogram/app.js && echo "✅ app.js exists"
+          test -f miniprogram/project.config.json && echo "✅ project.config.json exists"
+          test -d miniprogram/pages && echo "✅ pages/ exists"
+          test -d miniprogram/cloudfunctions && echo "✅ cloudfunctions/ exists"
+          echo "Mini Program files OK"
