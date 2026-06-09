@@ -1,110 +1,116 @@
-# Token Deadline Reminder 🕐
+# 要到期啦 🕐
 
-> 记录每个产品的限时、剩余额度，定时提醒你续费、别浪费！
+> 订阅与续费管理平台 — 管理你的 AI 工具、域名、服务器、软件会员等所有订阅项目
 
-一款温暖卡片风格的额度追踪工具，帮助你管理 AI/SaaS 订阅、云服务资源包、金融产品等到期与额度提醒。
+## 📱 多端支持
 
-## 📱 两个版本
-
-| 版本 | 目录 | 技术栈 | 在线体验 |
-|------|------|--------|---------|
-| **H5 版本** | [`/h5`](./h5) | HTML + CSS + JS, PWA, LocalStorage | [GitHub Pages](https://cenacai.github.io/TokenDeallineReminder/) |
-| **小程序版本** | [`/miniprogram`](./miniprogram) | 微信原生 WXML/WXSS, 云开发, 订阅消息 | 微信搜索 |
+| 端 | 目录 | 技术栈 | 状态 |
+|---|---|---|---|
+| **Web 后台** | [`/web`](./web) | Next.js 16 + Tailwind + Recharts + Supabase | ✅ 活跃开发 |
+| **微信小程序** | [`/miniprogram`](./miniprogram) | 原生 WXML + 云开发 + 订阅消息 | ✅ 可用 |
+| **Chrome 扩展** | [`/extension`](./extension) | Manifest V3 + Service Worker | ✅ 可用 |
+| ~~旧 H5 版本~~ | [`/h5`](./h5) | HTML + PWA + LocalStorage | 🗑️ 已归档 |
 
 ## ✨ 核心功能
 
-### 三种数据录入方式
-1. ⚡ **API 接入** — 填入 API Key 自动查余额（H5: fetch / 小程序: 云函数代理）
-2. 📷 **截图识别** — 上传账单截图自动识别录入（H5: Tesseract.js / 小程序: 微信 OCR 插件）
-3. ✏️ **手动填写** — 全字段表单（不鼓励但支持）
+### 5 大模块
+1. **账号体系** — 微信登录 + 邮箱 Magic Link，默认昵称 `helloworld`
+2. **订阅管理** — 完整 CRUD、9 个默认分类、标签系统、状态自动计算
+3. **提醒系统** — 提前 30/15/7/3/1/0 天 + 过期后，三渠道推送（微信/Chrome/邮件）
+4. **Dashboard** — 统计卡片 + 到期时间轴 + 支出分布图
+5. **模板中心** — 12 个预置模板（ChatGPT Plus, Claude Max, Gemini Pro 等），一键创建
 
-### 提醒系统
-- **H5**: PWA 浏览器推送通知 + 应用内弹窗提醒
-- **小程序**: 微信订阅消息 + 云函数定时触发器
-
-### 产品类型
-通用混合设计 — AI 订阅、SaaS、云服务、金融理财等均可记录
-
-## 🎨 设计令牌
-
-| 令牌 | 值 |
-|------|-----|
-| 主色 | `#E8703A`（温暖橙） |
-| 背景 | `#FFF8F0`（米白） |
-| 卡片 | `#FFFFFF` + 柔和阴影 |
-| 成功 | `#4CAF50` |
-| 警告 | `#FF9800` |
-| 危险 | `#F44336` |
+### 技术架构
+```
+Next.js (Web) + Supabase (BaaS) + PostgreSQL + Chrome Extension V3 + 微信小程序
+```
 
 ## 🚀 快速开始
 
-### H5 版本
+### Web 后台（开发）
+
 ```bash
-# 直接打开或用任意静态服务器
-cd h5
-open index.html
-# 或
-npx serve .
+cd web
+npm install
+cp .env.local.example .env.local
+# 编辑 .env.local 填入 Supabase 配置
+npm run dev
 ```
 
-### 小程序版本
+### 部署到 Vercel
+
+1. Fork 或导入此仓库到你的 GitHub
+2. 在 [vercel.com](https://vercel.com) 点击 **Import Project**
+3. 选择 `web` 目录作为 Root Directory
+4. 添加环境变量：
+   - `NEXT_PUBLIC_SUPABASE_URL`
+   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+   - `SUPABASE_SERVICE_ROLE_KEY`
+5. 点击 **Deploy**
+
+### 微信小程序
+
 请参考 [小程序部署文档](./miniprogram/DEPLOY.md)
+
+### Chrome 扩展
+
+1. 打开 `chrome://extensions/`
+2. 开启「开发者模式」
+3. 点击「加载已解压的扩展程序」→ 选择 `/extension` 目录
 
 ## 📦 项目结构
 
 ```
 TokenDeallineReminder/
-├── h5/                          # H5 PWA 版本
-│   ├── index.html               # 主入口
-│   ├── css/styles.css           # 样式
-│   ├── js/
-│   │   ├── app.js               # 主逻辑
-│   │   ├── db.js                # LocalStorage 数据层
-│   │   ├── render.js            # 渲染引擎
-│   │   ├── api-providers.js     # API 额度查询
-│   │   ├── ocr.js               # Tesseract.js OCR
-│   │   └── notifications.js     # PWA 通知
-│   ├── sw.js                    # Service Worker
-│   ├── manifest.json            # PWA Manifest
-│   └── icons/                   # 应用图标
+├── web/                    # Next.js Web 后台
+│   ├── src/
+│   │   ├── app/            # App Router 页面
+│   │   ├── components/     # UI 组件
+│   │   └── lib/            # 工具函数 + Supabase 客户端
+│   ├── public/
+│   └── package.json
 │
-├── miniprogram/                 # 微信小程序版本
-│   ├── app.js/json/wxss         # 小程序入口
-│   ├── pages/
-│   │   ├── index/               # 产品列表首页
-│   │   ├── add/                 # 三种录入方式
-│   │   ├── detail/              # 产品详情/同步/提醒
-│   │   └── settings/            # 提醒配置/数据管理
-│   ├── components/              # 复用组件
-│   ├── cloudfunctions/          # 云函数
-│   ├── scripts/                 # CI/CD 部署脚本
-│   └── DEPLOY.md                # 部署文档
+├── miniprogram/            # 微信小程序
+│   ├── pages/              # 首页/添加/详情/模板/设置
+│   ├── cloudfunctions/     # 云函数（定时扫描/微信登录）
+│   └── project.config.json
 │
-├── .github/workflows/
-│   ├── release.yml              # 发布部署（H5→Pages, 小程序→CI上传）
-│   └── ci.yml                   # 开发分支 CI 检查
+├── extension/              # Chrome 扩展
+│   ├── manifest.json       # Manifest V3
+│   ├── popup.html/js/css   # 弹窗面板
+│   ├── background.js       # Service Worker（通知）
+│   └── options.html/js     # 设置页
 │
-├── BRANCHING.md                 # 分支策略说明
-└── README.md
+├── supabase/               # 数据库迁移
+│   └── migrations/
+│
+├── packages/               # 共享类型定义
+│   └── shared/types.ts
+│
+├── h5/                     # 旧版 H5（已归档）
+│
+└── scripts/                # 工具脚本
+    └── setup-supabase.sh
 ```
 
-## 🌿 版本控制策略
+## 🔑 环境变量
 
-详见 [BRANCHING.md](./BRANCHING.md)
+| 变量名 | 必需 | 说明 |
+|--------|------|------|
+| `NEXT_PUBLIC_SUPABASE_URL` | ✅ | Supabase 项目 URL |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | ✅ | Supabase Anon Key |
+| `SUPABASE_SERVICE_ROLE_KEY` | ✅ | Supabase Service Role Key（仅服务端） |
+| `NEXT_PUBLIC_AUTHING_APP_ID` | ❌ | Authing App ID（微信登录桥接） |
+| `NEXT_PUBLIC_AUTHING_HOST` | ❌ | Authing 域名 |
+| `WECHAT_OPEN_APP_ID` | ❌ | 微信开放平台 App ID |
+| `WECHAT_OPEN_APP_SECRET` | ❌ | 微信开放平台 Secret |
+
+## 🌿 版本控制策略
 
 | 分支 | 用途 |
 |------|------|
 | `main` | 稳定发布版（保护分支，需 PR 审核） |
 | `develop` | 开发集成分支 |
-
-### 版本标签
-- `v1.0.0-h5` — H5 首个正式版
-- `v1.0.0-mp` — 小程序首个正式版
-
-### 自动部署
-- 推送到 `main` → 自动部署 H5 到 GitHub Pages
-- 打 `v*-mp` 标签 → 自动上传小程序代码到微信
-- 推送到 `develop` → 自动运行 CI 检查
 
 ## 📄 License
 
