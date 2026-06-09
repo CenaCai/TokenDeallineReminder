@@ -6,10 +6,10 @@
 
 ## 📱 两个版本
 
-| 版本 | 目录 | 技术栈 | 适合场景 |
+| 版本 | 目录 | 技术栈 | 在线体验 |
 |------|------|--------|---------|
-| **H5 版本** | [`/h5`](./h5) | HTML + CSS + JS, PWA, LocalStorage | 手机浏览器直接打开，添加到主屏幕 |
-| **小程序版本** | [`/miniprogram`](./miniprogram) | 微信原生 WXML/WXSS, 云开发, 订阅消息 | 微信生态内，通知更可靠 |
+| **H5 版本** | [`/h5`](./h5) | HTML + CSS + JS, PWA, LocalStorage | [GitHub Pages](https://cenacai.github.io/TokenDeallineReminder/) |
+| **小程序版本** | [`/miniprogram`](./miniprogram) | 微信原生 WXML/WXSS, 云开发, 订阅消息 | 微信搜索 |
 
 ## ✨ 核心功能
 
@@ -80,8 +80,31 @@ TokenDeallineReminder/
 │   ├── scripts/                 # CI/CD 部署脚本
 │   └── DEPLOY.md                # 部署文档
 │
+├── .github/workflows/
+│   ├── release.yml              # 发布部署（H5→Pages, 小程序→CI上传）
+│   └── ci.yml                   # 开发分支 CI 检查
+│
+├── BRANCHING.md                 # 分支策略说明
 └── README.md
 ```
+
+## 🌿 版本控制策略
+
+详见 [BRANCHING.md](./BRANCHING.md)
+
+| 分支 | 用途 |
+|------|------|
+| `main` | 稳定发布版（保护分支，需 PR 审核） |
+| `develop` | 开发集成分支 |
+
+### 版本标签
+- `v1.0.0-h5` — H5 首个正式版
+- `v1.0.0-mp` — 小程序首个正式版
+
+### 自动部署
+- 推送到 `main` → 自动部署 H5 到 GitHub Pages
+- 打 `v*-mp` 标签 → 自动上传小程序代码到微信
+- 推送到 `develop` → 自动运行 CI 检查
 
 ## 📄 License
 
