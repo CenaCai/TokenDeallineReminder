@@ -1,8 +1,8 @@
 // utils/api.js - Supabase API 封装
 const app = getApp()
 
-const BASE_URL = 'YOUR_SUPABASE_URL'
-const ANON_KEY = 'YOUR_SUPABASE_ANON_KEY'
+const BASE_URL = 'https://nvgirjjogtctgwybbkyu.supabase.co'
+const ANON_KEY = 'sb_publishable_WmPeiENItuf6SVqEkzvppA_uWFVFLbB'
 
 function getHeaders(token) {
   return {

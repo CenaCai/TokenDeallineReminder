@@ -10,8 +10,8 @@ App({
     }
     this.globalData = {
       userInfo: null,
-      supabaseUrl: 'YOUR_SUPABASE_URL',
-      supabaseKey: 'YOUR_SUPABASE_ANON_KEY',
+      supabaseUrl: 'https://nvgirjjogtctgwybbkyu.supabase.co',
+      supabaseKey: 'sb_publishable_WmPeiENItuf6SVqEkzvppA_uWFVFLbB',
     }
   },
 
