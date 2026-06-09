@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=400,initial-scale=1">
+  <title>要到期啦</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div id="app">
+    <!-- Header -->
+    <div class="header">
+      <div class="logo">🔔</div>
+      <div class="title-group">
+        <h1>要到期啦</h1>
+        <p class="subtitle">订阅与续费提醒</p>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats">
+      <div class="stat-item">
+        <span class="stat-value" id="total-count">0</span>
+        <span class="stat-label">总订阅</span>
+      </div>
+      <div class="stat-item stat-warning">
+        <span class="stat-value" id="expiring-count">0</span>
+        <span class="stat-label">即将到期</span>
+      </div>
+      <div class="stat-item stat-danger">
+        <span class="stat-value" id="expired-count">0</span>
+        <span class="stat-label">已过期</span>
+      </div>
+    </div>
+
+    <!-- Expiring Soon -->
+    <div class="section" id="expiring-section">
+      <h2 class="section-title">⚠️ 即将到期</h2>
+      <div id="expiring-list"></div>
+    </div>
+
+    <!-- Expired -->
+    <div class="section" id="expired-section">
+      <h2 class="section-title">❌ 已过期</h2>
+      <div id="expired-list"></div>
+    </div>
+
+    <!-- Actions -->
+    <div class="actions">
+      <a href="#" id="open-web" class="btn btn-primary">打开 Web 面板</a>
+      <a href="#" id="open-settings" class="btn btn-outline">设置</a>
+    </div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

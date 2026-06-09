@@ -12,10 +12,10 @@ Thumbs.db
 *.sublime-project
 *.sublime-workspace
 
-# ============ H5 版本 ============
+# ============ 旧 H5 版本 ============
 h5/node_modules/
 
-# ============ 小程序版本 ============
+# ============ 旧小程序版本 ============
 miniprogram/node_modules/
 miniprogram/ci-config.json
 miniprogram/private.*.key
@@ -26,9 +26,20 @@ miniprogram/miniprogram_npm/
 # ============ 云函数 ============
 miniprogram/cloudfunctions/*/node_modules/
 
+# ============ 新版 Web (Next.js) ============
+web/node_modules/
+web/.next/
+web/out/
+web/.env.local
+web/.env*.local
+
+# ============ Chrome 扩展 ============
+extension/node_modules/
+
 # ============ 密钥与敏感信息 ============
 *.key
 *.pem
 .env
 .env.*
 !.env.*.template
+!.env.local.example
