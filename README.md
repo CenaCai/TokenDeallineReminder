@@ -39,14 +39,16 @@ npm run dev
 
 ### 部署到 Vercel
 
-1. Fork 或导入此仓库到你的 GitHub
-2. 在 [vercel.com](https://vercel.com) 点击 **Import Project**
-3. 选择 `web` 目录作为 Root Directory
-4. 添加环境变量：
-   - `NEXT_PUBLIC_SUPABASE_URL`
-   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-   - `SUPABASE_SERVICE_ROLE_KEY`
-5. 点击 **Deploy**
+详见 [DEPLOY.md](./DEPLOY.md)。正式环境使用 Vercel，Root Directory 为 `web`，密钥只配置在 Vercel/GitHub Secrets。
+
+### 发布前预检
+
+```bash
+export NEXT_PUBLIC_SUPABASE_URL="预发布 Supabase URL"
+export NEXT_PUBLIC_SUPABASE_ANON_KEY="预发布 Supabase anon key"
+export SUPABASE_SERVICE_ROLE_KEY="预发布 Supabase service role key"
+bash scripts/preflight-web.sh
+```
 
 ### 微信小程序
 
@@ -111,6 +113,8 @@ TokenDeallineReminder/
 |------|------|
 | `main` | 稳定发布版（保护分支，需 PR 审核） |
 | `develop` | 开发集成分支 |
+
+每个正式版本使用 `release/vX.Y.Z` 分支进行预发布验收，合入 `main` 后创建 `vX.Y.Z` tag。完整规范见 [BRANCHING.md](./BRANCHING.md) 和 [RELEASE.md](./RELEASE.md)。
 
 ## 📄 License
 

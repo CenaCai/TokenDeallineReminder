@@ -1,27 +1,24 @@
 "use client"
 
-import { useState, useEffect } from 'react'
+import { useCallback, useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { AppLayout } from '@/components/layout/app-layout'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import { Select } from '@/components/ui/select'
 import { Modal } from '@/components/ui/modal'
-import { formatCurrency, daysUntil, statusColor, statusLabel, calcStatus, cn } from '@/lib/utils'
-import type { Subscription, Category, Tag } from '@/lib/types'
-import { DEFAULT_CATEGORIES, CURRENCY_OPTIONS, BILLING_CYCLE_OPTIONS, DEFAULT_TAGS } from '@/lib/types'
+import { formatCurrency, daysUntil, statusLabel, calcStatus } from '@/lib/utils'
+import type { Subscription, Category } from '@/lib/types'
 import Link from 'next/link'
 import {
-  Plus, Search, Filter, MoreHorizontal, Pencil, Trash2,
-  Calendar, DollarSign, Tag as TagIcon, X, CreditCard,
+  Plus, Search, Pencil, Trash2,
+  Calendar, DollarSign, CreditCard,
 } from 'lucide-react'
 
 export default function SubscriptionsPage() {
   const [subs, setSubs] = useState<Subscription[]>([])
   const [categories, setCategories] = useState<Category[]>([])
-  const [tags, setTags] = useState<Tag[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [filterCategory, setFilterCategory] = useState('')
@@ -29,18 +26,16 @@ export default function SubscriptionsPage() {
   const [deleteId, setDeleteId] = useState<string | null>(null)
   const supabase = createClient()
 
-  useEffect(() => {
-    loadData()
-  }, [])
-
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return
+    if (!user) {
+      setLoading(false)
+      return
+    }
 
-    const [subsRes, catsRes, tagsRes] = await Promise.all([
+    const [subsRes, catsRes] = await Promise.all([
       supabase.from('subscriptions').select('*, category:categories(*)').eq('user_id', user.id).order('expire_date', { ascending: true }),
       supabase.from('categories').select('*').eq('user_id', user.id),
-      supabase.from('tags').select('*').eq('user_id', user.id),
     ])
 
     if (subsRes.data) {
@@ -51,9 +46,12 @@ export default function SubscriptionsPage() {
       setSubs(updated as Subscription[])
     }
     if (catsRes.data) setCategories(catsRes.data as Category[])
-    if (tagsRes.data) setTags(tagsRes.data as Tag[])
     setLoading(false)
-  }
+  }, [supabase])
+
+  useEffect(() => {
+    loadData()
+  }, [loadData])
 
   const handleDelete = async () => {
     if (!deleteId) return
@@ -144,7 +142,7 @@ export default function SubscriptionsPage() {
           <div className="grid gap-3">
             {filtered.map(sub => {
               const d = daysUntil(sub.expire_date)
-              const catName = (sub as any).category?.name || '其它'
+              const catName = sub.category?.name || '其它'
               return (
                 <Card key={sub.id}>
                   <CardContent className="p-4">

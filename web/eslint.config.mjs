@@ -5,6 +5,13 @@ import nextTs from "eslint-config-next/typescript";
 const eslintConfig = defineConfig([
   ...nextVitals,
   ...nextTs,
+  {
+    rules: {
+      // Current pages use client-side Supabase loading in effects.
+      // Keep this rule off until data loading is moved to server components or a query library.
+      "react-hooks/set-state-in-effect": "off",
+    },
+  },
   // Override default ignores of eslint-config-next.
   globalIgnores([
     // Default ignores of eslint-config-next:

@@ -1,18 +1,78 @@
-name: Release & Deploy
+name: Release Gate
 
 on:
+  pull_request:
+    branches: [main]
   push:
     branches: [main]
     tags: ['v*']
-  pull_request:
-    branches: [main]
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
-  # ====== H5 版本：部署到 GitHub Pages ======
-  deploy-h5:
-    name: Deploy H5 to Pages
+  release-check:
+    name: Release preflight
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v'))
+    defaults:
+      run:
+        working-directory: web
+    env:
+      NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL || 'https://example.supabase.co' }}
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'ci-anon-key' }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY || 'ci-service-role-key' }}
+      NEXT_PUBLIC_APP_VERSION: ${{ github.ref_name }}
+      PORT: 3100
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Build
+        run: npm run build
+
+      - name: Start preview server
+        run: |
+          npm run start > /tmp/yao-dao-qi-la-web.log 2>&1 &
+          echo $! > /tmp/yao-dao-qi-la-web.pid
+
+      - name: API smoke tests
+        working-directory: .
+        run: |
+          for i in $(seq 1 60); do
+            if curl -fsS "http://127.0.0.1:${PORT}/api/health" >/dev/null; then
+              break
+            fi
+            sleep 1
+          done
+
+          test "$(curl -sS -o /tmp/health.json -w '%{http_code}' "http://127.0.0.1:${PORT}/api/health")" = "200"
+          test "$(curl -sS -o /tmp/home.html -w '%{http_code}' "http://127.0.0.1:${PORT}/")" = "200"
+          test "$(curl -sS -o /tmp/wechat.html -w '%{http_code}' "http://127.0.0.1:${PORT}/api/auth/wechat")" = "200"
+
+      - name: Stop preview server
+        if: always()
+        run: |
+          if [ -f /tmp/yao-dao-qi-la-web.pid ]; then
+            kill "$(cat /tmp/yao-dao-qi-la-web.pid)" 2>/dev/null || true
+          fi
+
+  deploy-h5-archive:
+    name: Deploy archived H5 to Pages
+    runs-on: ubuntu-latest
+    needs: release-check
+    if: startsWith(github.ref, 'refs/tags/v') && contains(github.ref, '-h5')
     permissions:
       contents: read
       pages: write
@@ -23,79 +83,43 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup Pages
-        uses: actions/configure-pages@v4
+      - uses: actions/configure-pages@v4
 
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
+      - uses: actions/upload-pages-artifact@v3
         with:
-          path: './h5'
+          path: ./h5
 
-      - name: Deploy to GitHub Pages
-        id: deployment
+      - id: deployment
         uses: actions/deploy-pages@v4
 
-  # ====== 小程序版本：CI 上传 ======
-  deploy-miniprogram:
+  upload-miniprogram:
     name: Upload Mini Program
     runs-on: ubuntu-latest
+    needs: release-check
     if: startsWith(github.ref, 'refs/tags/v') && contains(github.ref, '-mp')
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup Node
-        uses: actions/setup-node@v4
+      - name: Check upload tooling
+        run: |
+          test -f miniprogram/package.json
+          test -f miniprogram/scripts/upload.js
+
+      - uses: actions/setup-node@v4
         with:
           node-version: '22'
-          cache: 'npm'
+          cache: npm
           cache-dependency-path: miniprogram/package-lock.json
 
       - name: Install dependencies
-        run: |
-          cd miniprogram
-          npm ci
+        working-directory: miniprogram
+        run: npm ci
 
       - name: Upload Mini Program
+        working-directory: miniprogram
         env:
           MP_APPID: ${{ secrets.MP_APPID }}
           MP_PRIVATE_KEY: ${{ secrets.MP_PRIVATE_KEY }}
         run: |
-          cd miniprogram
           TAG_NAME=${GITHUB_REF#refs/tags/}
-          VERSION="${TAG_NAME#v}"
           node scripts/upload.js --env prod --desc "Release ${TAG_NAME}" --ci
-
-  # ====== 预览版：PR 时生成小程序预览码 ======
-  preview-miniprogram:
-    name: Preview Mini Program
-    runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request' && contains(github.base_ref, 'main')
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-          cache: 'npm'
-          cache-dependency-path: miniprogram/package-lock.json
-
-      - name: Install dependencies
-        run: |
-          cd miniprogram
-          npm ci
-
-      - name: Generate Preview QR
-        env:
-          MP_APPID: ${{ secrets.MP_APPID }}
-          MP_PRIVATE_KEY: ${{ secrets.MP_PRIVATE_KEY }}
-        run: |
-          cd miniprogram
-          node scripts/upload.js --preview --env dev --desc "PR #${{ github.event.number }}" --ci
-
-      - name: Upload Preview QR
-        uses: actions/upload-artifact@v4
-        with:
-          name: preview-qrcode
-          path: miniprogram/preview-qrcode.png
-          retention-days: 7

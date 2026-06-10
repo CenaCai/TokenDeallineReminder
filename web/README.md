@@ -1,36 +1,54 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Web 后台
 
-## Getting Started
+`web` 是「要到期啦」的 Next.js 后台，用于登录、订阅管理、模板中心、Dashboard 和设置。
 
-First, run the development server:
+## 开发
 
 ```bash
+npm install
+cp .env.local.example .env.local
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+打开 `http://localhost:3000`。
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 必需环境变量
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```env
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_ANON_KEY=
+SUPABASE_SERVICE_ROLE_KEY=
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+```
 
-## Learn More
+微信登录相关变量为可选，详见根目录 [DEPLOY.md](../DEPLOY.md)。
 
-To learn more about Next.js, take a look at the following resources:
+## 检查
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+npm run lint
+npm run build
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+发布前使用根目录脚本进行 production build 和接口 smoke：
 
-## Deploy on Vercel
+```bash
+cd ..
+bash scripts/preflight-web.sh
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+接口健康检查：
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```text
+GET /api/health
+```
+
+## 部署
+
+Web 正式环境部署在 Vercel：
+
+- Root Directory: `web`
+- Production Branch: `main`
+- 环境变量只配置在 Vercel Dashboard 或 GitHub Secrets
+
+发布和回退流程见根目录 [RELEASE.md](../RELEASE.md)。

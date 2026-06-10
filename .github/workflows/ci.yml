@@ -1,45 +1,96 @@
-name: CI Check
+name: CI
 
 on:
-  push:
-    branches: [develop]
   pull_request:
-    branches: [develop]
+    branches: [develop, 'release/**', main]
+  push:
+    branches: [develop, 'release/**']
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  lint-h5:
-    name: Check H5
+  web:
+    name: Web lint, build, and API smoke
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    env:
+      NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL || 'https://example.supabase.co' }}
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'ci-anon-key' }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY || 'ci-service-role-key' }}
+      NEXT_PUBLIC_APP_VERSION: ${{ github.sha }}
+      PORT: 3100
     steps:
       - uses: actions/checkout@v4
-      - name: Validate HTML
-        run: |
-          # 检查 H5 文件完整性
-          test -f h5/index.html && echo "✅ index.html exists"
-          test -f h5/css/styles.css && echo "✅ styles.css exists"
-          test -f h5/sw.js && echo "✅ sw.js exists"
-          test -f h5/manifest.json && echo "✅ manifest.json exists"
-          echo "H5 files OK"
 
-  lint-miniprogram:
-    name: Check Mini Program
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Setup Node
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: '22'
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
       - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Build
+        run: npm run build
+
+      - name: Start preview server
         run: |
-          cd miniprogram
-          npm ci
-      - name: Validate structure
+          npm run start > /tmp/yao-dao-qi-la-web.log 2>&1 &
+          echo $! > /tmp/yao-dao-qi-la-web.pid
+
+      - name: API smoke tests
+        working-directory: .
         run: |
-          # 检查小程序文件完整性
-          test -f miniprogram/app.json && echo "✅ app.json exists"
-          test -f miniprogram/app.js && echo "✅ app.js exists"
-          test -f miniprogram/project.config.json && echo "✅ project.config.json exists"
-          test -d miniprogram/pages && echo "✅ pages/ exists"
-          test -d miniprogram/cloudfunctions && echo "✅ cloudfunctions/ exists"
-          echo "Mini Program files OK"
+          for i in $(seq 1 60); do
+            if curl -fsS "http://127.0.0.1:${PORT}/api/health" >/dev/null; then
+              break
+            fi
+            sleep 1
+          done
+
+          test "$(curl -sS -o /tmp/health.json -w '%{http_code}' "http://127.0.0.1:${PORT}/api/health")" = "200"
+          test "$(curl -sS -o /tmp/home.html -w '%{http_code}' "http://127.0.0.1:${PORT}/")" = "200"
+          test "$(curl -sS -o /tmp/wechat.html -w '%{http_code}' "http://127.0.0.1:${PORT}/api/auth/wechat")" = "200"
+
+      - name: Stop preview server
+        if: always()
+        run: |
+          if [ -f /tmp/yao-dao-qi-la-web.pid ]; then
+            kill "$(cat /tmp/yao-dao-qi-la-web.pid)" 2>/dev/null || true
+          fi
+
+  static-assets:
+    name: Static app structure
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check H5 archive
+        run: |
+          test -f h5/index.html
+          test -f h5/css/styles.css
+          test -f h5/sw.js
+          test -f h5/manifest.json
+
+      - name: Check Mini Program
+        run: |
+          test -f miniprogram/app.json
+          test -f miniprogram/app.js
+          test -f miniprogram/project.config.json
+          test -d miniprogram/pages
+          test -d miniprogram/cloudfunctions
+
+      - name: Check Chrome Extension
+        run: |
+          test -f extension/manifest.json
+          test -f extension/background.js
+          test -f extension/popup.html
+          test -f extension/options.html

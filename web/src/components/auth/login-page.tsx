@@ -9,8 +9,12 @@ import { Bell, Mail, AlertCircle, Loader2 } from 'lucide-react'
 // Authing SDK - minimal inline loader (or install authing-js-sdk)
 declare global {
   interface Window {
-    Authing: any
+    Authing?: unknown
   }
+}
+
+function getErrorMessage(err: unknown, fallback: string) {
+  return err instanceof Error ? err.message : fallback
 }
 
 export default function LoginPage() {
@@ -38,8 +42,8 @@ export default function LoginPage() {
       } else {
         setSent(true)
       }
-    } catch (err: any) {
-      setError(err.message || '登录失败，请重试')
+    } catch (err: unknown) {
+      setError(getErrorMessage(err, '登录失败，请重试'))
     } finally {
       setLoading(false)
     }
@@ -65,8 +69,8 @@ export default function LoginPage() {
       const redirectUri = `${window.location.origin}/api/auth/wechat/callback`
       const authingUrl = `https://${authingHost}/login/profile?app_id=${authingAppId}&redirect_uri=${encodeURIComponent(redirectUri)}&identity=wechat:qrconnect`
       window.location.href = authingUrl
-    } catch (err: any) {
-      setError(err.message || '微信登录失败')
+    } catch (err: unknown) {
+      setError(getErrorMessage(err, '微信登录失败'))
     } finally {
       setWechatLoading(false)
     }

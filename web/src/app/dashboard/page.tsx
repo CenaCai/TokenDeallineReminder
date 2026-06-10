@@ -1,12 +1,12 @@
 "use client"
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { AppLayout } from '@/components/layout/app-layout'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { formatCurrency, daysUntil, statusColor, statusLabel, calcStatus } from '@/lib/utils'
+import { formatCurrency, daysUntil, statusLabel, calcStatus } from '@/lib/utils'
 import type { Subscription, DashboardStats } from '@/lib/types'
 import Link from 'next/link'
 import {
@@ -16,10 +16,9 @@ import {
   XCircle,
   Plus,
   Calendar,
-  ArrowRight,
 } from 'lucide-react'
 import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+  Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell,
 } from 'recharts'
 
@@ -30,13 +29,12 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true)
   const supabase = createClient()
 
-  useEffect(() => {
-    loadSubscriptions()
-  }, [])
-
-  const loadSubscriptions = async () => {
+  const loadSubscriptions = useCallback(async () => {
     const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return
+    if (!user) {
+      setLoading(false)
+      return
+    }
 
     const { data } = await supabase
       .from('subscriptions')
@@ -53,7 +51,11 @@ export default function DashboardPage() {
       setSubs(updated as Subscription[])
     }
     setLoading(false)
-  }
+  }, [supabase])
+
+  useEffect(() => {
+    loadSubscriptions()
+  }, [loadSubscriptions])
 
   // Stats
   const stats: DashboardStats = {
@@ -79,7 +81,7 @@ export default function DashboardPage() {
   // Expense by category
   const categoryMap = new Map<string, number>()
   subs.forEach(s => {
-    const cat = (s as any).category?.name || '其它'
+    const cat = s.category?.name || '其它'
     categoryMap.set(cat, (categoryMap.get(cat) || 0) + Number(s.amount))
   })
   const categoryData = Array.from(categoryMap.entries()).map(([name, value]) => ({ name, value }))

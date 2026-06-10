@@ -1,6 +1,6 @@
 "use client"
 
-import { Suspense, useEffect, useState } from 'react'
+import { Suspense, useEffect, useMemo, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import LoginPage from '@/components/auth/login-page'
@@ -8,7 +8,7 @@ import LoginPage from '@/components/auth/login-page'
 function HomeContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const supabase = createClient()
+  const supabase = useMemo(() => createClient(), [])
   const [checking, setChecking] = useState(true)
 
   useEffect(() => {
@@ -20,14 +20,14 @@ function HomeContent() {
           router.replace(redirect)
           return
         }
-      } catch (err) {
+      } catch {
         // Supabase not configured yet, that's okay
         console.log('Auth check skipped (Supabase not configured)')
       }
       setChecking(false)
     }
     checkAuth()
-  }, [router, searchParams])
+  }, [router, searchParams, supabase.auth])
 
   const authError = searchParams.get('error')
 

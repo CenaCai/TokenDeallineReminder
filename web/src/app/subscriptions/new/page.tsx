@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from 'react'
+import { useCallback, useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { AppLayout } from '@/components/layout/app-layout'
@@ -8,12 +8,11 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select } from '@/components/ui/select'
-import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
 import { Modal } from '@/components/ui/modal'
 import type { Category, Tag, Template } from '@/lib/types'
 import { DEFAULT_CATEGORIES, CURRENCY_OPTIONS, BILLING_CYCLE_OPTIONS, DEFAULT_TAGS, REMINDER_DAYS_OPTIONS } from '@/lib/types'
-import { ArrowLeft, Save, Sparkles, X } from 'lucide-react'
+import { ArrowLeft, Save, Sparkles } from 'lucide-react'
 
 export default function NewSubscriptionPage() {
   const router = useRouter()
@@ -40,11 +39,7 @@ export default function NewSubscriptionPage() {
   const [reminderDays, setReminderDays] = useState<number[]>([7, 3, 1, 0])
   const [reminderChannels, setReminderChannels] = useState<string[]>(['wechat', 'chrome'])
 
-  useEffect(() => {
-    loadData()
-  }, [])
-
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
 
@@ -76,7 +71,11 @@ export default function NewSubscriptionPage() {
     }
 
     setTemplates((tmplRes.data || []) as Template[])
-  }
+  }, [supabase])
+
+  useEffect(() => {
+    loadData()
+  }, [loadData])
 
   const applyTemplate = (t: Template) => {
     setName(t.name)

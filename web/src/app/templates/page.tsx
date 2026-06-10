@@ -1,30 +1,29 @@
 "use client"
 
-import { useState, useEffect } from 'react'
+import { useCallback, useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { AppLayout } from '@/components/layout/app-layout'
 import { Card, CardContent } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
 import { formatCurrency } from '@/lib/utils'
 import type { Template } from '@/lib/types'
-import { CURRENCY_OPTIONS, BILLING_CYCLE_OPTIONS } from '@/lib/types'
-import { Bookmark, Search, Plus } from 'lucide-react'
-import Link from 'next/link'
+import { Bookmark, Search } from 'lucide-react'
 
 export default function TemplatesPage() {
   const [templates, setTemplates] = useState<Template[]>([])
   const [search, setSearch] = useState('')
   const [filterCat, setFilterCat] = useState('')
+  const router = useRouter()
   const supabase = createClient()
+
+  const loadTemplates = useCallback(async () => {
+    const { data } = await supabase.from('templates').select('*').order('category', { ascending: true })
+    if (data) setTemplates(data as Template[])
+  }, [supabase])
 
   useEffect(() => {
     loadTemplates()
-  }, [])
-
-  const loadTemplates = async () => {
-    const { data } = await supabase.from('templates').select('*').order('category', { ascending: true })
-    if (data) setTemplates(data as Template[])
-  }
+  }, [loadTemplates])
 
   const categories = [...new Set(templates.map(t => t.category))]
 
@@ -44,7 +43,7 @@ export default function TemplatesPage() {
   const handleUseTemplate = (t: Template) => {
     // Store in sessionStorage for the new subscription form to pick up
     sessionStorage.setItem('selected_template', JSON.stringify(t))
-    window.location.href = '/subscriptions/new'
+    router.push('/subscriptions/new')
   }
 
   return (

@@ -1,54 +1,52 @@
 # 分支策略
 
-## 主要分支
+本项目使用轻量 Git Flow，适合个人开发者维护多端应用。完整发布、预发布、回退流程见 [RELEASE.md](./RELEASE.md)。
 
-| 分支 | 用途 | 保护规则 |
-|------|------|---------|
-| `main` | 稳定发布版 | 需要 PR + 审核通过 |
-| `develop` | 开发集成分支 | 所有功能分支的合入目标 |
+## 长期分支
 
-## 版本分支
+| 分支 | 用途 | 合入规则 |
+| --- | --- | --- |
+| `main` | 正式稳定版本 | 只能通过 PR 合入，必须通过 Release preflight |
+| `develop` | 日常开发集成 | 功能分支先合入这里 |
 
-| 分支前缀 | 用途 | 示例 |
-|----------|------|------|
-| `h5/` | H5 版本功能开发 | `h5/add-dark-mode` |
-| `mp/` | 小程序版本功能开发 | `mp/add-subscription` |
-| `shared/` | 两个版本共享的功能 | `shared/update-design-tokens` |
-| `hotfix/` | 紧急修复 | `hotfix/fix-ocr-crash` |
-| `release/` | 发布准备 | `release/v1.0.0` |
+## 临时分支
 
-## 工作流
+| 分支格式 | 用途 | 来源 | 合入目标 |
+| --- | --- | --- | --- |
+| `feature/<scope>-<name>` | 新功能 | `develop` | `develop` |
+| `fix/<scope>-<name>` | 普通缺陷修复 | `develop` | `develop` |
+| `release/vX.Y.Z` | 某个版本的预发布和冻结 | `develop` | `main` 和 `develop` |
+| `hotfix/vX.Y.Z` | 线上 P0 修复 | `main` 或稳定 tag | `main` 和 `develop` |
 
-```
-main ──────────────────────────────────────●
-                                           │
-develop ────────────●───●───●───●───●───●───┤
-                    │   │   │   │   │   │   │
-h5/feature-a ────●─┘   │   │   │   │   │   │
-mp/feature-b ────────●─┘   │   │   │   │   │
-h5/feature-c ────────────────●─┘   │   │   │
-mp/feature-d ──────────────────────●─┘   │   │
-                                          │
-release/v1.0.0 ───────────────────────────●┘
-```
+`scope` 建议使用：
 
-1. 从 `develop` 拉取功能分支（`h5/` 或 `mp/` 前缀）
-2. 开发完成后提 PR 合入 `develop`
-3. 准备发布时，从 `develop` 创建 `release/vX.Y.Z`
-4. 测试通过后，`release` 分支合入 `main` 和 `develop`
-5. 在 `main` 上打 tag `vX.Y.Z`
-
-## 版本号规范
-
-格式：`v{MAJOR}.{MINOR}.{PATCH}-{EDITION}`
-
-- MAJOR: 不兼容的 API 变更
-- MINOR: 向后兼容的功能新增
-- PATCH: 向后兼容的问题修正
-- EDITION: `h5` 或 `mp`
+- `web`
+- `mp`
+- `extension`
+- `supabase`
+- `docs`
+- `shared`
 
 示例：
-- `v1.0.0-h5` — H5 首个正式版
-- `v1.0.0-mp` — 小程序首个正式版
-- `v1.1.0-h5` — H5 新增暗黑模式
-- `v1.0.1-mp` — 小程序修复 OCR 问题
+
+- `feature/web-subscription-tags`
+- `fix/mp-reminder-openid`
+- `release/v2.0.0`
+- `hotfix/v2.0.1`
+
+## 版本分支要求
+
+每个正式版本必须满足：
+
+1. 有对应的 `release/vX.Y.Z` 分支
+2. 在 Mac 预发布环境跑通 `scripts/preflight-web.sh`
+3. GitHub Actions 的 `Release preflight` 通过
+4. 合入 `main` 后创建对应 tag，例如 `v2.0.0`
+5. `main` 合回 `develop`
+
+## 禁止事项
+
+- 禁止直接向 `main` 推送功能代码
+- 禁止对公开 `main` 强推
+- 禁止把 service role key、微信私钥、`.env.local` 提交到仓库
+- 禁止未经预发布检查直接上线

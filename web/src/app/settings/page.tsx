@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from 'react'
+import { useCallback, useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { AppLayout } from '@/components/layout/app-layout'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
@@ -16,11 +16,7 @@ export default function SettingsPage() {
   const [nickname, setNickname] = useState('')
   const [saving, setSaving] = useState(false)
 
-  useEffect(() => {
-    loadProfile()
-  }, [])
-
-  const loadProfile = async () => {
+  const loadProfile = useCallback(async () => {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
 
@@ -29,12 +25,19 @@ export default function SettingsPage() {
       setProfile(data as Profile)
       setNickname(data.nickname)
     }
-  }
+  }, [supabase])
+
+  useEffect(() => {
+    loadProfile()
+  }, [loadProfile])
 
   const handleSaveProfile = async () => {
     setSaving(true)
     const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return
+    if (!user) {
+      setSaving(false)
+      return
+    }
 
     await supabase.from('profiles').update({ nickname }).eq('id', user.id)
     setSaving(false)

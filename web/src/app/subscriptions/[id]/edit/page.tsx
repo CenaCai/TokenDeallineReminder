@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from 'react'
+import { useCallback, useState, useEffect } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { AppLayout } from '@/components/layout/app-layout'
@@ -10,7 +10,7 @@ import { Input } from '@/components/ui/input'
 import { Select } from '@/components/ui/select'
 import { cn } from '@/lib/utils'
 import type { Category, Tag, Subscription } from '@/lib/types'
-import { DEFAULT_CATEGORIES, CURRENCY_OPTIONS, BILLING_CYCLE_OPTIONS, DEFAULT_TAGS, REMINDER_DAYS_OPTIONS } from '@/lib/types'
+import { CURRENCY_OPTIONS, BILLING_CYCLE_OPTIONS, REMINDER_DAYS_OPTIONS } from '@/lib/types'
 import { ArrowLeft, Save } from 'lucide-react'
 
 export default function EditSubscriptionPage() {
@@ -38,13 +38,15 @@ export default function EditSubscriptionPage() {
   const [reminderDays, setReminderDays] = useState<number[]>([7, 3, 1, 0])
   const [reminderChannels, setReminderChannels] = useState<string[]>(['wechat', 'chrome'])
 
-  useEffect(() => {
-    loadData()
-  }, [id])
+  type SubscriptionTagRow = { tag_id: string }
+  type SubscriptionWithTags = Subscription & { subscription_tags?: SubscriptionTagRow[] }
 
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return
+    if (!user) {
+      setLoading(false)
+      return
+    }
 
     const [subRes, catsRes, tagsRes] = await Promise.all([
       supabase.from('subscriptions').select('*, subscription_tags(tag_id)').eq('id', id).single(),
@@ -53,7 +55,7 @@ export default function EditSubscriptionPage() {
     ])
 
     if (subRes.data) {
-      const s = subRes.data as any
+      const s = subRes.data as SubscriptionWithTags
       setName(s.name)
       setCategoryId(s.category_id || '')
       setProvider(s.provider || '')
@@ -65,14 +67,18 @@ export default function EditSubscriptionPage() {
       setRemark(s.remark || '')
       setAutoRenew(s.auto_renew)
       if (s.subscription_tags) {
-        setSelectedTagIds(s.subscription_tags.map((st: any) => st.tag_id))
+        setSelectedTagIds(s.subscription_tags.map(st => st.tag_id))
       }
     }
 
     setCategories((catsRes.data || []) as Category[])
     setTags((tagsRes.data || []) as Tag[])
     setLoading(false)
-  }
+  }, [id, supabase])
+
+  useEffect(() => {
+    loadData()
+  }, [loadData])
 
   const toggleReminderDay = (day: number) => {
     setReminderDays(prev =>
